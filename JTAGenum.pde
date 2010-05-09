@@ -394,20 +394,19 @@ static void loopback_check()
 
 /*
  * Scan TDO for IDCODE. Handle MAX_DEV_NR many devices.
- * We feed ones into TDI and wait for the first 32 of them to come out at TDO (after n * 32 bit).
- * We count the number of bit changes before to determine if the pins are correct.
+ * We feed zeros into TDI and wait for the first 32 of them to come out at TDO (after n * 32 bit).
+ * As IEEE 1149.1 requires bit 0 of an IDCODE to be a "1", we check this bit.
  * We record the first bit from the idcodes into bit0.
  * (oppposite to the old code).
+ * If we get an IDCODE of all ones, we assume that the pins are wrong.
  */
 static void scan_idcode()
 {
         int tck, tms, tdo, tdi;
 	int i,j;
 	int nr; /* number of devices */
-	uint32_t nr_toggled;
-	int prev_tdo, tdo_read;
+	int tdo_read;
 	uint32_t idcodes[MAX_DEV_NR];
-
         printProgStr(PSTR("================================\r\n"
 			  "Starting scan for IDCODE...\r\n"
 			  //"(if activity found, examine for IDCODE. Pits printed in shift right order with MSB first)\n"
@@ -435,20 +434,16 @@ static void scan_idcode()
 					tap_state(TAP_RESET, pins[tck], pins[tms]);
 					tap_state(TAP_SHIFTDR, pins[tck], pins[tms]);
 					
-					nr_toggled = 0;
-					prev_tdo = digitalRead(pins[tdo]);
 					/* j is the number of bits we pulse into TDI and read from TDO */
 					for(i=0; i < MAX_DEV_NR; i++) {
 						idcodes[i] = 0;
 						for(j=0; j<IDCODE_LEN;j++) {
-							/* we send '1' in */
-							pulse_tdi(pins[tck], pins[tdi], 1);
+							/* we send '0' in */
+							pulse_tdi(pins[tck], pins[tdi], 0);
 							tdo_read = digitalRead(pins[tdo]);
 							if (tdo_read)
 								idcodes[i] |= ((uint32_t)1)<<j;
 
-							nr_toggled += prev_tdo != tdo_read;
-							prev_tdo = tdo_read;
 							if (VERBOSE)
 								Serial.print(tdo_read,DEC);
 						} /* for(j=0; ... ) */
@@ -456,30 +451,20 @@ static void scan_idcode()
 							Serial.print(" ");
 							Serial.println(idcodes[i],HEX);
 						}
-						/* save time: break at the first all-ones idcode */
-						if (idcodes[i] == 0xffffffff)
+						/* save time: break at the first idcode with bit0 != 1 */
+						if (!(idcodes[i] & 1) || idcodes[i] == 0xffffffff)
 							break;
 					} /* for(i=0; ...) */
 
-					if (VERBOSE) {
-						Serial.print("  toggled: ");
-						Serial.println(nr_toggled, DEC);
-					}
-
-					if (nr_toggled >= IDCODETHRESHOLD) {
-						/* Find the first 0xffffffff in idcodes[] */
-						nr=0;
-						while (nr < i && idcodes[nr] != 0xffffffff) nr++;
-						if (nr > 0) {
-							print_pins(tck,tms,tdo,tdi);
-							Serial.print("  devices: ");
-							Serial.println(nr,DEC);
-							for(j=0; j < nr; j++) {
-								Serial.print("  0x");
-								Serial.println(idcodes[j],HEX);
-							}
-						} /* if (nr > 0) */
-					} /* if (nr_toggled >= IDCODETHRESHOLD) */
+					if (i > 0) {
+						print_pins(tck,tms,tdo,tdi);
+						Serial.print("  devices: ");
+						Serial.println(i,DEC);
+						for(j=0; j < i; j++) {
+							Serial.print("  0x");
+							Serial.println(idcodes[j],HEX);
+						}
+					} /* if (i > 0) */
 				} /* for(tdo=0; ... ) */
 			} /* for(tdi=0; ...) */
 		} /* for(tms=0; ...) */
