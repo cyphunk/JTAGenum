@@ -79,8 +79,8 @@
 //          " 3",    " 6",    "10",    "17",    "19",    "21",  /*"24"*/   "26", /*"PIN_D7"*/
 //          " 2",    " 5",    " 9",    "13",    "18",    "20",    "22"   /*"25"*//*"PIN_E6"*/
 //};
-byte       pins[] = {   PIN_B7,   PIN_D0,   PIN_D1,   PIN_D2 };
-char * pinnames[] = { "TCK_9 ", "TMS_22", "TDO   ", "TDI   " };
+byte       pins[] = {   2, 3, 4, 5, 6, 7 };
+char * pinnames[] = { "DIG_2", "DIG_3", "DIG_4", "DIG_5", "DIG_6", "DIG_7" };
 
 // Pattern used for scan() and loopback() tests
 #define PATTERN_LEN 64
@@ -217,85 +217,61 @@ void init_pins (int tck=IGNOREPIN, int tms=IGNOREPIN, int tdi=IGNOREPIN)
 }
 
 
-
-
 /*
  * send pattern[] to TDI and check for output on TDO
+ * This is used for both loopback, and Shift-IR testing, i.e.
+ * the pattern may show up with some delay.
  * return: 0 = no match
  *         1 = match 
  *         2 or greater = no pattern found but line appears active
+ *
+ * if retval == 1, *reglen returns the length of the register
  */
-static int check_data(char pattern[], int iterations, int tck, int tdi, int tdo)
+static int check_data(char pattern[], int iterations, int tck, int tdi, int tdo,
+		       int *reg_len)
 {
-        int i;
-        int wpointer;
-        int tdo_read;
-        int tdo_expected;
-        int tdo_first;
-        int recognized;
-        int plen;
+	int i,w=0;
+	int plen=strlen(pattern);
+	char tdo_read;
+	char tdo_prev;
+	int nr_toggle=0; // count how often tdo toggled
+	/* we store the last plen (<=PATTERN_LEN) bits,
+           rcv[0] contains the oldest bit */
+	char rcv[PATTERN_LEN];
+	
+	tdo_prev = '0' + (digitalRead(tdo) == HIGH);
 
-        // used to monitor for any activity on tdo:
-        int bitstoggled = 0;
-        int prevbit;
+	for(i=0; i < iterations; i++) {
+		
+		/* output pattern and incr write index */
+		pulse_tdi(tck, tdi, pattern[w++]-'0');
+		if (!pattern[w])
+			w=0;
 
-        wpointer = 0;
-        recognized = 0;
-        plen = strlen(pattern);
+		/* read from TDO and put it into rcv[] */
+		tdo_read = '0' + (digitalRead(tdo) == HIGH);
 
-        if(pattern[0] == '0')
-                tdo_first = 0;
-        else
-                tdo_first = 1;
-        for(i=0;i<iterations;i++) {
-                if (DELAY) delayMicroseconds(DELAYUS);
+		nr_toggle += (tdo_read != tdo_prev);
+		tdo_prev = tdo_read;
 
-                /* Shift in */
-                if(pattern[wpointer] == 0)
-                        wpointer = 0;
-                if(pattern[wpointer] == '0')
-                        pulse_tdi(tck, tdi, 0);
-                else
-                        pulse_tdi(tck, tdi, 1);
-                wpointer++;
-
-                /* Check what comes out */
-                if(digitalRead(tdo))
-                        tdo_read = 1;
-                else
-                        tdo_read = 0;
-
-                /* Indicate if any bits ever change to detect any activity */
-                if (i != 0 && tdo_read != prevbit)
-                        bitstoggled++;
-                prevbit = tdo_read;
-
-                if (VERBOSE && i % 32 == 0) Serial.print(" ");
-                if (VERBOSE) Serial.print(tdo_read,DEC);
-
-                if(pattern[recognized] == '0')
-                        tdo_expected = 0;
-                else
-                        tdo_expected = 1;
-
-                if(tdo_read == tdo_expected) {
-                        recognized++;
-                        if(recognized == plen)
-                                return 1; // match found
-                } 
-                else {
-                        if(tdo_read == tdo_first)
-                                recognized = 1;
-                        else
-                                recognized = 0;
+		if (i < plen)
+			rcv[i] = tdo_read;
+		else {
+			memmove(rcv, rcv+1, plen-1);
+			rcv[plen-1] = tdo_read;
                 }
-        }
-        //if (VERBOSE) Serial.println();
-
-        if (bitstoggled > 1)
-                return bitstoggled; // no match but activity found
-        else
-                return 0; // no match and no activity on tdo
+                
+                /* check if we got the pattern in rcv[] */
+                if (i >=(plen-1)) {
+			if (!memcmp(pattern, rcv, plen)) {
+				*reg_len = i+1-plen;
+				return 1;
+  			}
+  		}
+	} /* for(i=0; ... ) */
+  
+	*reg_len = 0;
+	return nr_toggle > 1 ? nr_toggle : 0;
 }
 
 /*
@@ -306,6 +282,8 @@ static void scan()
 {
         int tck, tms, tdo, tdi;
         int checkdataret=0;
+	int len;
+	int reg_len;
         Serial.print(
         	"================================\n"
                 "Starting scan for pattern:\n");
@@ -333,7 +311,8 @@ static void scan()
                                         }
                                         init_pins(pins[tck], pins[tms], pins[tdi]);
                                         tap_state(TAP_SHIFTIR, pins[tck], pins[tms]);
-                                        checkdataret = check_data(pattern, (2*PATTERN_LEN), pins[tck], pins[tdi], pins[tdo]); 
+					checkdataret = check_data(pattern, (2*PATTERN_LEN), 
+ 								  pins[tck], pins[tdi], pins[tdo], &reg_len); 
                                         if(checkdataret == 1) {
                                                 Serial.print("FOUND! ");
                                                 Serial.print(" tck:");
@@ -344,6 +323,8 @@ static void scan()
                                                 Serial.print(pinnames[tdo]);
                                                 Serial.print(" tdi:");
                                                 Serial.println(pinnames[tdi]);
+						Serial.print(" IR length: ");
+						Serial.print(reg_len, DEC);
                                         }
                                         else if(checkdataret > 1) {
                                                 Serial.print("active ");
@@ -379,6 +360,7 @@ static void loopback_check()
 {
         int tdo, tdi;
         int checkdataret=0;
+	int reg_len;
 
         Serial.print(
         	"================================\n"
@@ -395,13 +377,16 @@ static void loopback_check()
                                 Serial.print("    ");
                         }
                         init_pins(IGNOREPIN/*tck*/, IGNOREPIN/*tck*/, pins[tdi]);
-                        checkdataret = check_data(pattern, (2*PATTERN_LEN), IGNOREPIN, pins[tdi], pins[tdo]);
+                        checkdataret = check_data(pattern, (2*PATTERN_LEN), IGNOREPIN, pins[tdi], pins[tdo], &reg_len);
                         if(checkdataret == 1) {
                                 Serial.print("FOUND! ");
                                 Serial.print(" tdo:");
                                 Serial.print(pinnames[tdo]);
                                 Serial.print(" tdi:");
-                                Serial.println(pinnames[tdi]);
+                                Serial.print(pinnames[tdi]);
+				Serial.print(" reglen:");
+				Serial.println(reg_len);
+
                         }
                         else if(checkdataret > 1) {
                                 Serial.print("active ");
@@ -508,6 +493,7 @@ static void shift_bypass()
 {
         int tdi, tdo;
         int checkdataret;
+	int reg_len;
 
         Serial.print(
         	"================================\n"
@@ -526,7 +512,7 @@ static void shift_bypass()
 
                         init_pins(IGNOREPIN/*tck*/, IGNOREPIN/*tms*/,pins[tdi]);
                         // if bypass is default on start, no need to init TAP state
-                        checkdataret = check_data(pattern, (2*PATTERN_LEN), IGNOREPIN/*tck*/, pins[tdi], pins[tdo]);
+                        checkdataret = check_data(pattern, (2*PATTERN_LEN), IGNOREPIN/*tck*/, pins[tdi], pins[tdo], &reg_len);
                         if(checkdataret == 1) {
                                 Serial.print("FOUND! ");
                                 Serial.print(" tdo:");
@@ -682,6 +668,7 @@ void set_pattern()
  */
 void loop() {
         char c;
+	int dummy;
         if (Serial.available() > 0) {   
                 c = Serial.read();
                 byte result = 0;
@@ -694,11 +681,11 @@ void loop() {
                         set_pattern();
                         break;
                 case '1':
-                        init_pins(pins[1], pins[2], PIN_D2);
-                        Serial.println(check_data(pattern, (2*PATTERN_LEN), pins[1],PIN_D1, PIN_D2) 
+                        init_pins(pins[0], pins[1], pins[2]);
+                        Serial.println(check_data(pattern, (2*PATTERN_LEN), pins[1], pins[2], pins[3], &dummy) 
                                 ? "found pattern or other" : "no pattern found");
-                        init_pins(pins[1], pins[2], PIN_D2);
-                        Serial.println(check_data(pattern, (2*PATTERN_LEN), pins[1],PIN_D2, PIN_D1) 
+                        init_pins(pins[0], pins[1], pins[3]);
+                        Serial.println(check_data(pattern, (2*PATTERN_LEN), pins[1], pins[3], pins[2], &dummy) 
                                 ? "found pattern or other" : "no pattern found");
                         break;
                 case 'l':
