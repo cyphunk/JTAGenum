@@ -81,8 +81,14 @@
 //          " 3",    " 6",    "10",    "17",    "19",    "21",  /*"24"*/   "26", /*"PIN_D7"*/
 //          " 2",    " 5",    " 9",    "13",    "18",    "20",    "22"   /*"25"*//*"PIN_E6"*/
 //};
-byte       pins[] = {   2, 3, 4, 5, 6, 7 };
-char * pinnames[] = { "DIG_2", "DIG_3", "DIG_4", "DIG_5", "DIG_6", "DIG_7" };
+
+/*
+ * Arduino Pro: usable digital pins are: 2-12, 14-19 (ANALOG 0-5)
+ *   (0,1 are the serial line, 13 is connected to the LED)
+ */
+byte       pins[] = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
+char * pinnames[] = { "DIG_2", "DIG_3", "DIG_4", "DIG_5", "DIG_6",
+		      "DIG_7", "DIG_8", "DIG_9", "DIG_10", "DIG_11" };
 
 // Pattern used for scan() and loopback() tests
 #define PATTERN_LEN 64
@@ -121,12 +127,6 @@ static char pattern[PATTERN_LEN] = "0110011101001101101000010111001001";
 #define TAP_SHIFTDR      "111110100"
 #define TAP_SHIFTIR      "1111101100"
 
-// how many bits must change in scan_idcode() in order to print?
-// in some cases pulling a bit high or low might change the state
-// of other pins, having nothing to do with JTAG. So 2 is likely
-// a good number.
-int IDCODETHRESHOLD = 2; 
-
 // Ignore TCK, TMS use in loopback check:
 #define IGNOREPIN 0xFFFF 
 // Flags configured by UI:
@@ -136,7 +136,7 @@ long DELAYUS = 5000; // 5 Milliseconds
 boolean PULLUP = 255; 
 
 
-byte pinslen = sizeof(pins);   
+const byte pinslen = sizeof(pins)/sizeof(pins[0]);   
 
 
 void setup(void)
