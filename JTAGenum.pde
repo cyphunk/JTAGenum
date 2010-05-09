@@ -274,6 +274,20 @@ static int check_data(char pattern[], int iterations, int tck, int tdi, int tdo,
 	return nr_toggle > 1 ? nr_toggle : 0;
 }
 
+static void print_pins(int tck, int tms, int tdo, int tdi)
+{
+	Serial.print(" tck:");
+	Serial.print(pinnames[tck]);
+	Serial.print(" tms:");
+	Serial.print(pinnames[tms]);
+	Serial.print(" tdo:");
+	Serial.print(pinnames[tdo]);
+	if (tdi != IGNOREPIN) {
+		Serial.print(" tdi:");
+		Serial.print(pinnames[tdi]);
+	}
+}
+
 /*
  * Shift JTAG TAP to ShiftIR state. Send pattern to TDI and check
  * for output on TDO
@@ -299,14 +313,7 @@ static void scan()
                                         if(tdi == tms) continue;
                                         if(tdi == tdo) continue;
                                         if(VERBOSE) {
-                                                Serial.print(" tck:");
-                                                Serial.print(pinnames[tck]);
-                                                Serial.print(" tms:");
-                                                Serial.print(pinnames[tms]);
-                                                Serial.print(" tdo:");
-                                                Serial.print(pinnames[tdo]);
-                                                Serial.print(" tdi:");
-                                                Serial.print(pinnames[tdi]);
+						print_pins(tck, tms, tdo, tdi);
                                                 Serial.print("    ");
                                         }
                                         init_pins(pins[tck], pins[tms], pins[tdi]);
@@ -315,27 +322,13 @@ static void scan()
  								  pins[tck], pins[tdi], pins[tdo], &reg_len); 
                                         if(checkdataret == 1) {
                                                 Serial.print("FOUND! ");
-                                                Serial.print(" tck:");
-                                                Serial.print(pinnames[tck]);
-                                                Serial.print(" tms:");
-                                                Serial.print(pinnames[tms]);
-                                                Serial.print(" tdo:");
-                                                Serial.print(pinnames[tdo]);
-                                                Serial.print(" tdi:");
-                                                Serial.println(pinnames[tdi]);
+						print_pins(tck, tms, tdo, tdi);
 						Serial.print(" IR length: ");
 						Serial.print(reg_len, DEC);
                                         }
                                         else if(checkdataret > 1) {
                                                 Serial.print("active ");
-                                                Serial.print(" tck:");
-                                                Serial.print(pinnames[tck]);
-                                                Serial.print(" tms:");
-                                                Serial.print(pinnames[tms]);
-                                                Serial.print(" tdo:");
-                                                Serial.print(pinnames[tdo]);
-                                                Serial.print(" tdi:");
-                                                Serial.print(pinnames[tdi]);
+						print_pins(tck, tms, tdo, tdi);
                                                 Serial.print("  bits toggled:");
                                                 Serial.println(checkdataret);
                                         }
@@ -428,12 +421,7 @@ static void scan_idcode()
                                 if(tdo == tms) continue;
 
                                 if(VERBOSE) {
-                                        Serial.print(" tck:");
-                                        Serial.print(pinnames[tck]);
-                                        Serial.print(" tms:");
-                                        Serial.print(pinnames[tms]);
-                                        Serial.print(" tdo:");
-                                        Serial.print(pinnames[tdo]);
+				        print_pins(tck, tms, tdo, IGNOREPIN /*tdi*/);
                                         Serial.print("    ");
                                 }
 
@@ -466,12 +454,7 @@ static void scan_idcode()
                                 }
 
                                 if(bitstoggled >= IDCODETHRESHOLD) {
-                                        Serial.print("\n tck:");
-                                        Serial.print(pinnames[tck]);
-                                        Serial.print(" tms:");
-                                        Serial.print(pinnames[tms]);
-                                        Serial.print(" tdo:");
-                                        Serial.print(pinnames[tdo]);
+					print_pins(tck, tms, tdo, IGNOREPIN /* tdi */);
                                         Serial.print("\n bits toggled:");
                                         Serial.print(bitstoggled);
                                         Serial.print("\n idcode buffer: ");
@@ -698,11 +681,9 @@ void loop() {
                         shift_bypass();
                         break;
                 case 'x':
-                        Serial.print("pins tck tms tdi tdo: ");
-                        Serial.print(pinnames[0]); 
-                        Serial.print(pinnames[1]); 
-                        Serial.print(pinnames[3]);
-                        Serial.println(pinnames[2]);
+                        Serial.print("pins");
+			print_pins(0, 1, 2, 3);
+                        Serial.println();
                         sample(SCAN_LEN+100, pins[0]/*tck*/, pins[1]/*tms*/, pins[3]/*tdi*/, pins[2]/*tdo*/);
                         break;
                 case 'y':
