@@ -55,6 +55,8 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+//needed to put help strings into flash
+#include <avr/pgmspace.h>
 
 /*
  * BEGIN USER DEFINITIONS
@@ -298,9 +300,8 @@ static void scan()
         int checkdataret=0;
 	int len;
 	int reg_len;
-        Serial.print(
-        	"================================\n"
-                "Starting scan for pattern:\n");
+        printProgStr(PSTR("================================\r\n"
+			  "Starting scan for pattern:"));
         Serial.println(pattern);
         for(tck=0;tck<pinslen;tck++) {
                 for(tms=0;tms<pinslen;tms++) {
@@ -337,7 +338,7 @@ static void scan()
                         }
                 }
         }
-        Serial.print("================================\n");
+        printProgStr(PSTR("================================\r\n"));
 }
 /*
  * Check for pins that pass pattern[] between tdi and tdo
@@ -355,10 +356,9 @@ static void loopback_check()
         int checkdataret=0;
 	int reg_len;
 
-        Serial.print(
-        	"================================\n"
-                "Starting loopback check...\n");
-        for(tdo=0;tdo<pinslen;tdo++) {
+	printProgStr(PSTR("================================\r\n"
+			  "Starting loopback check...\r\n"));
+	for(tdo=0;tdo<pinslen;tdo++) {
                 for(tdi=0;tdi<pinslen;tdi++) {
                         if(tdi == tdo) continue;
 
@@ -393,7 +393,7 @@ static void loopback_check()
                         else if(VERBOSE) Serial.println();
                 }
         }
-        Serial.print("================================\n");
+	printProgStr(PSTR("================================\r\n"));
 }
 /*
  * Scan TDI for IDCODE
@@ -405,11 +405,10 @@ static void scan_idcode()
         int bitstoggled;
         byte prevbit, tdo_read;
 
-        Serial.print(
-        	"================================\n"
-                "Starting scan for IDCODE...\n"
-                //"(if activity found, examine for IDCODE. Pits printed in shift right order with MSB first)\n"
-	);
+        printProgStr(PSTR("================================\r\n"
+			  "Starting scan for IDCODE...\r\n"
+			  //"(if activity found, examine for IDCODE. Pits printed in shift right order with MSB first)\n"
+			     ));
         char idcodestr[] = "                                ";
         int idcode_i=31; // TODO: artifact that might need to be configurable
         uint32_t idcode;
@@ -455,9 +454,9 @@ static void scan_idcode()
 
                                 if(bitstoggled >= IDCODETHRESHOLD) {
 					print_pins(tck, tms, tdo, IGNOREPIN /* tdi */);
-                                        Serial.print("\n bits toggled:");
+                                        Serial.print("\r\n bits toggled:");
                                         Serial.print(bitstoggled);
-                                        Serial.print("\n idcode buffer: ");
+                                        Serial.print("\r\n idcode buffer: ");
                                         Serial.print(idcodestr);
                                         Serial.print("  0x");
                                         Serial.println(idcode,HEX);
@@ -469,7 +468,7 @@ static void scan_idcode()
                         }
                 }
         }
-        Serial.print("================================\n");
+        printProgStr(PSTR("================================"));
 }
 
 static void shift_bypass()
@@ -478,10 +477,9 @@ static void shift_bypass()
         int checkdataret;
 	int reg_len;
 
-        Serial.print(
-        	"================================\n"
-                "Starting shift of pattern through bypass...\n"
-                "(assuming TDI->bypassreg->TDO state (no tck or tms))\n");
+	printProgStr(PSTR("================================\r\n"
+                "Starting shift of pattern through bypass...\r\n"
+			  "(assuming TDI->bypassreg->TDO state (no tck or tms))"));
         for(tdi=0;tdi<pinslen;tdi++) {
                 for(tdo=0;tdo<pinslen;tdo++) {
                         if(tdo == tdi) continue;
@@ -515,7 +513,7 @@ static void shift_bypass()
                         else if(VERBOSE) Serial.println();
                 }
         }
-        Serial.print("================================\n");
+        printProgStr(PSTR("================================\r\n"));
 }
 void ir_state(char state[], int tck, int tms, int tdi) 
 {
@@ -543,7 +541,7 @@ void ir_state(char state[], int tck, int tms, int tdi)
                 *state++;
         }
 #ifdef DEBUGIR
-        Serial.print("\nUpdateIR with ");
+        Serial.print("\r\nUpdateIR with ");
 #endif
         // a reset would cause IDCODE instruction to be selected again
         tap_state("11", tck, tms); // UpdateIR & SelectDR
@@ -552,8 +550,8 @@ void ir_state(char state[], int tck, int tms, int tdi)
 }
 static void sample(int iterations, int tck, int tms, int tdi, int tdo)
 {
-        Serial.print("================================\n"
-                     "Starting sample (boundary scan)...\n"); 
+        printProgStr(PSTR("================================\r\n"
+			  "Starting sample (boundary scan)...\r\n")); 
         init_pins(tck, tms ,tdi);  
 
         // send instruction and go to ShiftDR
@@ -574,9 +572,9 @@ static void sample(int iterations, int tck, int tms, int tdi, int tdo)
 char ir_buf[IR_LEN+1];
 static void brute_ir(int iterations, int tck, int tms, int tdi, int tdo)
 {
-        Serial.print("================================\n"
-                "Starting brute force scan of IR instructions...\n"
-                "IR_LEN set to "); 
+        printProgStr(PSTR("================================\r\n"
+			  "Starting brute force scan of IR instructions...\r\n"
+			  "IR_LEN set to ")); 
         Serial.println(IR_LEN,DEC);
 
         init_pins(tck, tms ,tdi);  
@@ -620,7 +618,7 @@ void set_pattern()
         int i;
         char c;
 
-        Serial.print("Enter new pattern (terminate with new line or '.'):\n"
+        Serial.print("Enter new pattern (terminate with new line or '.'):\r\n"
                 "> ");
         i = 0;
         while(1) {
@@ -644,6 +642,15 @@ void set_pattern()
                         return;
                 }
         }
+}
+
+// given a PROGMEM string, use Serial.print() to send it out
+void printProgStr(const char *str)
+{
+  char c;
+  if(!str) return;
+  while((c = pgm_read_byte(str++)))
+    Serial.print(c,BYTE);
 }
 
 /*
@@ -716,48 +723,51 @@ void loop() {
                 default:
                         Serial.println("unknown command");
                 case 'h':
-                        Serial.print("\n"
-                                "s > scan\n"
-                                "\n"
-                                "l > loopback\n"
-                                "    ignores tck,tms. if patterns passed to tdo pins are\n"
-                                "    connected there is a short or a false-possitive\n"
-                                "    condition exists that should be taken into account\n"
-                                "\n"
-                                "i > idcode scan\n"
-                                "    ignores tdi. assumes IDCODE is default on reset state.\n"
-                                "    sets TAP state to DR_SHIFT and prints TDO to console\n"
-                                "    if TDO appears active. Human examination required to\n"
-                                "    determine if actual IDCODE is present. Run several\n"
-                                "    times to check for consistancy or compare against\n"
-                                "    active tdo lines found with loopback test.\n"
-                                "\n"
-                                "b > shift_bypass\n"
-                                "    currently broken. need to add tck\n"
-                                "\n"
-                                "x > sample (aka boundary scan)\n"
-                                "\n"
-                                "y > brute force IR search\n"
-                                "\n"
-                                "1 > single check\n"
-                                "    runs a full check on one code-defined tdi<>tdo pair and\n"
-                                "    you will need to look at the main()/loop() code to specify.\n"
-                                "r > pullup resistors on inputs on/off\n"
-                                "    might increase stability when using a bad patch cable.\n"
-                                "v > verbose on/off\n"
-                                "    print tdo bits to console during testing. will slow\n"
-                                "    down scan.\n"
-                                "d > delay on/off\n"
-                                "    will slow down scan.\n"
-                                "- > delay - 1000us (or 100us)\n"
-                                "+ > delay + 1000us\n"
-                                "p > set pattern ["
-                                );
+		{
+	                printProgStr(PSTR(  
+				"\r\n"
+				"s > scan\r\n"
+				"\r\n"
+				"l > loopback\r\n"
+				"    ignores tck,tms. if patterns passed to tdo pins are\r\n"
+				"    connected there is a short or a false-possitive\r\n"
+				"    condition exists that should be taken into account\r\n"
+				"\r\n"
+				"i > idcode scan\r\n"
+				"    ignores tdi. assumes IDCODE is default on reset state.\r\n"
+				"    sets TAP state to DR_SHIFT and prints TDO to console\r\n"
+				"    if TDO appears active. Human examination required to\r\n"
+				"    determine if actual IDCODE is present. Run several\r\n"
+				"    times to check for consistancy or compare against\r\n"
+				"    active tdo lines found with loopback test.\r\n"
+				"\r\n"
+				"b > shift_bypass\r\n"
+				"    currently broken. need to add tck\r\n"
+				"\r\n"
+				"x > sample (aka boundary scan)\r\n"
+				"\r\n"
+				"y > brute force IR search\r\n"
+				"\r\n"
+				"1 > single check\r\n"
+				"    runs a full check on one code-defined tdi<>tdo pair and\r\n"
+				"    you will need to look at the main()/loop() code to specify.\r\n"
+				"r > pullup resistors on inputs on/off\r\n"
+				"    might increase stability when using a bad patch cable.\r\n"
+				"v > verbose on/off\r\n"
+				"    print tdo bits to console during testing. will slow\r\n"
+				"    down scan.\r\n"
+				"d > delay on/off\r\n"
+				"    will slow down scan.\r\n"
+				"- > delay - 1000us (or 100us)\r\n"
+				"+ > delay + 1000us\r\n"
+				"h > help\r\n"
+				"p > set pattern ["));
+			
                         Serial.print(pattern);
-                        Serial.println("]\n\n"
-                                "h > help");
+                        Serial.println("]");
                         break;
-                }
+                } /* case 'h': */
+		}
                 Serial.print("\n> ");
         }
 }
