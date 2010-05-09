@@ -36,6 +36,9 @@ using a patch cable from Amontec that has a lot of cross talk.
 JTAGenum has a mode that helps check for this which I will get into
 more detail later.
 
+It's a good idea to insert resistors into the wires to protect the output
+drivers of both the Arduino and the investigated system. 400-800 Ohm should be fine.
+
 
 Usage
 .....
