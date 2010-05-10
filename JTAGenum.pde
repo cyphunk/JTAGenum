@@ -92,12 +92,11 @@ static char pattern[PATTERN_LEN] = "0110011101001101101000010111001001";
 // length of the DR register:
 //static char pattern[PATTERN_LEN] = "1000000000000000000000000000000000";
 
-// Number of JTAG enabled chips (CHAIN_LEN) and length
+// Max. number of JTAG enabled chips (MAX_DEV_NR) and length
 // of the DR register together define the number of
 // iterations to run for scan_idcode():
-#define CHAIN_LEN                 2 
-#define DR_LEN                    32  
-#define IR_IDCODE_ITERATIONS      CHAIN_LEN*DR_LEN
+#define MAX_DEV_NR                8
+#define IDCODE_LEN                32  
 
 // Target specific, check your documentation or guess 
 #define SCAN_LEN                  1890 // used for IR enum. bigger the better
@@ -125,10 +124,8 @@ static char pattern[PATTERN_LEN] = "0110011101001101101000010111001001";
 // how many bits must change in scan_idcode() in order to print?
 // in some cases pulling a bit high or low might change the state
 // of other pins, having nothing to do with JTAG. So 2 is likely
-// a good number. Note: these first two bit changes, will not be
-// printed to the console.
+// a good number.
 int IDCODETHRESHOLD = 2; 
-
 
 // Ignore TCK, TMS use in loopback check:
 #define IGNOREPIN 0xFFFF 
@@ -325,7 +322,7 @@ static void scan()
                                                 Serial.print("FOUND! ");
 						print_pins(tck, tms, tdo, tdi);
 						Serial.print(" IR length: ");
-						Serial.print(reg_len, DEC);
+						Serial.println(reg_len, DEC);
                                         }
                                         else if(checkdataret > 1) {
                                                 Serial.print("active ");
@@ -379,7 +376,6 @@ static void loopback_check()
                                 Serial.print(pinnames[tdi]);
 				Serial.print(" reglen:");
 				Serial.println(reg_len);
-
                         }
                         else if(checkdataret > 1) {
                                 Serial.print("active ");
@@ -395,17 +391,25 @@ static void loopback_check()
         }
 	printProgStr(PSTR("================================\r\n"));
 }
+
 /*
- * Scan TDI for IDCODE
- * no need for TDO stimulation
+ * Scan TDO for IDCODE. Handle MAX_DEV_NR many devices.
+ * We feed ones into TDI and wait for the first 32 of them to come out at TDO (after n * 32 bit).
+ * We count the number of bit changes before to determine if the pins are correct.
+ * We record the first bit from the idcodes into bit0.
+ * (oppposite to the old code).
  */
 static void scan_idcode()
 {
-        int tck, tms, tdo, i;
-        int bitstoggled;
-        byte prevbit, tdo_read;
+        int tck, tms, tdo, tdi;
+	int i,j;
+	int nr; /* number of devices */
+	uint32_t nr_toggled;
+	int prev_tdo, tdo_read;
+	uint32_t idcodes[MAX_DEV_NR];
 
         printProgStr(PSTR("================================\r\n"
+<<<<<<< HEAD
 			  "Starting scan for IDCODE...\r\n"
 			  //"(if activity found, examine for IDCODE. Pits printed in shift right order with MSB first)\n"
 			     ));
@@ -469,6 +473,82 @@ static void scan_idcode()
                 }
         }
         printProgStr(PSTR("================================"));
+=======
+			  "Starting scan for IDCODE...\r\n"));
+
+
+        for(tck=0;tck<pinslen;tck++) {
+                for(tms=0;tms<pinslen;tms++) {
+                        if(tms == tck) continue;
+			for(tdi=0;tdi<pinslen;tdi++) {
+                                if(tdi == tck) continue;
+                                if(tdi == tms) continue;
+				for(tdo=0; tdo<pinslen; tdo++) {
+					if(tdo == tdi || tdo == tck || tdo == tms) continue;
+
+					if(VERBOSE) {
+						print_pins(tck,tms,tdo,tdi);
+						Serial.print("    ");
+					}
+
+					init_pins(pins[tck], pins[tms], pins[tdi]);
+
+					/* we hope that IDCODE is the IR content after reset */
+					tap_state(TAP_RESET, pins[tck], pins[tms]);
+					tap_state(TAP_SHIFTDR, pins[tck], pins[tms]);
+					
+					nr_toggled = 0;
+					prev_tdo = digitalRead(pins[tdo]);
+					/* j is the number of bits we pulse into TDI and read from TDO */
+					for(i=0; i < MAX_DEV_NR; i++) {
+						idcodes[i] = 0;
+						for(j=0; j<IDCODE_LEN;j++) {
+							/* we send '1' in */
+							pulse_tdi(pins[tck], pins[tdi], 1);
+							tdo_read = digitalRead(pins[tdo]);
+							if (tdo_read)
+								idcodes[i] |= ((uint32_t)1)<<j;
+
+							nr_toggled += prev_tdo != tdo_read;
+							prev_tdo = tdo_read;
+							if (VERBOSE)
+								Serial.print(tdo_read,DEC);
+						} /* for(j=0; ... ) */
+						if (VERBOSE) {
+							Serial.print(" ");
+							Serial.println(idcodes[i],HEX);
+						}
+						/* save time: break at the first all-ones idcode */
+						if (idcodes[i] == 0xffffffff)
+							break;
+					} /* for(i=0; ...) */
+
+					if (VERBOSE) {
+						Serial.print("  toggled: ");
+						Serial.println(nr_toggled, DEC);
+					}
+
+					if (nr_toggled >= IDCODETHRESHOLD) {
+						/* Find the first 0xffffffff in idcodes[] */
+						nr=0;
+						while (nr < i && idcodes[nr] != 0xffffffff) nr++;
+						if (nr > 0) {
+							print_pins(tck,tms,tdo,tdi);
+							Serial.print("  devices: ");
+							Serial.println(nr,DEC);
+							for(j=0; j < nr; j++) {
+								Serial.print("  0x");
+								Serial.println(idcodes[j],HEX);
+							}
+						} /* if (nr > 0) */
+					} /* if (nr_toggled >= IDCODETHRESHOLD) */
+				} /* for(tdo=0; ... ) */
+			} /* for(tdi=0; ...) */
+		} /* for(tms=0; ...) */
+	} /* for(tck=0; ...) */
+
+        printProgStr(PSTR("================================\r\n"));
+>>>>>>> bd2e21b... scan_idcode: rewrote, handle up to eight devices in the chain
 }
 
 static void shift_bypass()
@@ -478,7 +558,7 @@ static void shift_bypass()
 	int reg_len;
 
 	printProgStr(PSTR("================================\r\n"
-                "Starting shift of pattern through bypass...\r\n"
+			  "Starting shift of pattern through bypass...\r\n"
 			  "(assuming TDI->bypassreg->TDO state (no tck or tms))"));
         for(tdi=0;tdi<pinslen;tdi++) {
                 for(tdo=0;tdo<pinslen;tdo++) {
