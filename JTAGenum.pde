@@ -409,7 +409,6 @@ static void scan_idcode()
 	uint32_t idcodes[MAX_DEV_NR];
 
         printProgStr(PSTR("================================\r\n"
-<<<<<<< HEAD
 			  "Starting scan for IDCODE...\r\n"
 			  //"(if activity found, examine for IDCODE. Pits printed in shift right order with MSB first)\n"
 			     ));
@@ -434,7 +433,7 @@ static void scan_idcode()
                                 /* read tdo. print if active. 
                                    human examination required to determine if if idcode found */
                                 prevbit=digitalRead(tdo); //default state before we pulse tdo
-                                for(i=0, bitstoggled=0, idcode=31; i<IR_IDCODE_ITERATIONS ;i++) {
+                                for(i=0, bitstoggled=0, idcode_i=31; i<IR_IDCODE_ITERATIONS ;i++) {
                                         tdo_read = pulse_tdo(pins[tck], pins[tdo]);
                                         if (tdo_read != prevbit)
                                                 bitstoggled++;
