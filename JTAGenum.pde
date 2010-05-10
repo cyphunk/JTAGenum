@@ -3,7 +3,7 @@
  Given a Arduino compatible microcontroller JTAGenum scans
  pins[] for basic JTAG functionality. After programming 
  your microcontroller open a serial terminal with 115200 
- baud and send 'h' to see usage information.
+ baud and send 'h' to see usage information. 
  
  SETUP:
  Define the pins[] and pinnames[] map of pin names to pins 
@@ -18,42 +18,26 @@
  
  Further documentation:
  http://deadhacker.com/2010/02/03/jtag-enumeration/ 
-
-
- This code is an extensive modification and port to Arduino 
- of Lekernel's ArduiNull [1] which was itself inspired by
- Hunz's JTAG Finder (aka jtagscanner) [2]. The advantage
- of using Arduino is that the code can be quickly programmed
- to any microcontroller supported by the platform (including
- PIC[3], AT90USB[4], others) with little to no modification
- required. While The Law Of Leaky Abstractions [5] still 
- applies using Arduino might be helpful for engineers with 
- tight deadlines.
  
+ 
+ AUTHORS & CODE BRANCHES:
+ cyphunk  http://github.com/cyphunk/JTAGenum/
+ jal2     http://github.com/jal2/JTAGenum/
+ zoobab   http://new.hackerspace.be/JTAG_pinout_detector
+ 
+ Most modifications are merged back into the first URL.
+ Check the others for cutting edge or solutions if you 
+ run into problems.  JTAGenum is based on Lekernel's 
+ ArduiNull[1] which was itself inspired by Hunz's 
+ JTAG Finder[2]. Tested on Arduino Mini Pro, Arduino 
+ Mega, Arduino Duemilanove and Teensy++[3].
+
  [1]http://lekernel.net/blog/?p=319
  [2]http://www.c3a.de/wiki/index.php/JTAG_Finder
- [3]http://www.create.ucsb.edu/~dano/CUI/
  [4]http://www.pjrc.com/teensy/  
- [5]http://joelonsoftware.com/articles/LeakyAbstractions.html
 
- TODO: add support for longer chains when using TAP_SHIFIR
-
-
- Copyright 2009 Nathan Fain
-
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+ This code is public domain, use as you wish and at your own risk
+*/
 
 //needed to put help strings into flash
 #include <avr/pgmspace.h>
