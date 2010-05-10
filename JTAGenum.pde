@@ -418,67 +418,6 @@ static void scan_idcode()
         for(tck=0;tck<pinslen;tck++) {
                 for(tms=0;tms<pinslen;tms++) {
                         if(tms == tck) continue;
-                        for(tdo=0;tdo<pinslen;tdo++) {
-                                if(tdo == tck) continue;
-                                if(tdo == tms) continue;
-
-                                if(VERBOSE) {
-				        print_pins(tck, tms, tdo, IGNOREPIN /*tdi*/);
-                                        Serial.print("    ");
-                                }
-
-                                init_pins(pins[tck], pins[tms],IGNOREPIN/*tdi*/);
-                                tap_state(TAP_SHIFTDR, pins[tck], pins[tms]);
-
-                                /* read tdo. print if active. 
-                                   human examination required to determine if if idcode found */
-                                prevbit=digitalRead(tdo); //default state before we pulse tdo
-                                for(i=0, bitstoggled=0, idcode_i=31; i<IR_IDCODE_ITERATIONS ;i++) {
-                                        tdo_read = pulse_tdo(pins[tck], pins[tdo]);
-                                        if (tdo_read != prevbit)
-                                                bitstoggled++;
-
-                                        // hand first active bit (previous bit)
-                                        if (bitstoggled == 1) {
-                                                idcode = prevbit;  //lsb                  
-                                                idcodestr[idcode_i--] = prevbit+'0'; // msb
-                                                Serial.print(prevbit,DEC);
-                                        }
-
-                                        if (bitstoggled > 0) {
-                                                idcode |= ((uint32_t)tdo_read) << (31-idcode_i);
-                                                idcodestr[idcode_i--] = tdo_read+'0';
-                                                Serial.print(tdo_read,DEC);
-                                                if (i % 32 == 31) Serial.print(" ");
-
-                                        }
-                                        prevbit = tdo_read;
-                                }
-
-                                if(bitstoggled >= IDCODETHRESHOLD) {
-					print_pins(tck, tms, tdo, IGNOREPIN /* tdi */);
-                                        Serial.print("\r\n bits toggled:");
-                                        Serial.print(bitstoggled);
-                                        Serial.print("\r\n idcode buffer: ");
-                                        Serial.print(idcodestr);
-                                        Serial.print("  0x");
-                                        Serial.println(idcode,HEX);
-                                }
-                                else if (bitstoggled || VERBOSE)
-                                        Serial.println();
-
-
-                        }
-                }
-        }
-        printProgStr(PSTR("================================"));
-=======
-			  "Starting scan for IDCODE...\r\n"));
-
-
-        for(tck=0;tck<pinslen;tck++) {
-                for(tms=0;tms<pinslen;tms++) {
-                        if(tms == tck) continue;
 			for(tdi=0;tdi<pinslen;tdi++) {
                                 if(tdi == tck) continue;
                                 if(tdi == tms) continue;
@@ -547,7 +486,6 @@ static void scan_idcode()
 	} /* for(tck=0; ...) */
 
         printProgStr(PSTR("================================\r\n"));
->>>>>>> bd2e21b... scan_idcode: rewrote, handle up to eight devices in the chain
 }
 
 static void shift_bypass()
