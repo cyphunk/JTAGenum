@@ -58,21 +58,19 @@
 // The second (uncommented) is used when you know the JTAG pins
 // already.
 //byte pins[] = { 
-//        PIN_B7,  PIN_D0,  PIN_D1,  PIN_D2,  PIN_D3,  PIN_D4,/*PIN_D5*/ PIN_D6, /*PIN_D7*/
-//        PIN_B6,  PIN_B5,  PIN_B4,  PIN_B3,  PIN_B2,  PIN_B1,  PIN_B0 /*PIN_E7*//*PIN_E6*/
+//        PIN_D0,  PIN_D1,  PIN_D2,  PIN_D3,  PIN_D4
 //};
 //char * pinnames[] = {
-//          " 3",    " 6",    "10",    "17",    "19",    "21",  /*"24"*/   "26", /*"PIN_D7"*/
-//          " 2",    " 5",    " 9",    "13",    "18",    "20",    "22"   /*"25"*//*"PIN_E6"*/
+//          "D0",    "D1",    "D2",    "D3",    "D4"
 //};
 
 /*
  * Arduino Pro: usable digital pins are: 2-12, 14-19 (ANALOG 0-5)
  *   (0,1 are the serial line, 13 is connected to the LED)
  */
-byte       pins[] = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
-char * pinnames[] = { "DIG_2", "DIG_3", "DIG_4", "DIG_5", "DIG_6",
-		      "DIG_7", "DIG_8", "DIG_9", "DIG_10", "DIG_11" };
+//byte       pins[] = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
+//char * pinnames[] = { "DIG_2", "DIG_3", "DIG_4", "DIG_5", "DIG_6",
+//		      "DIG_7", "DIG_8", "DIG_9", "DIG_10", "DIG_11" };
 
 // Pattern used for scan() and loopback() tests
 #define PATTERN_LEN 64
@@ -619,7 +617,7 @@ void set_pattern()
         int i;
         char c;
 
-        Serial.print("Enter new pattern (terminate with new line or '.'):\r\n"
+        Serial.print("Enter new pattern of 1's or 0's (terminate with new line or '.'):\r\n"
                 "> ");
         i = 0;
         while(1) {
@@ -654,85 +652,18 @@ void printProgStr(const char *str)
     Serial.print(c,BYTE);
 }
 
-/*
- * main()
- */
-void loop() {
-        char c;
-	int dummy;
-        if (Serial.available() > 0) {   
-                c = Serial.read();
-                byte result = 0;
-                Serial.println(c);
-                switch (c) {
-                case 's':
-                        scan();
-                        break;
-                case 'p':
-                        set_pattern();
-                        break;
-                case '1':
-                        init_pins(pins[0], pins[1], pins[2], IGNOREPIN /*ntrst*/);
-                        Serial.println(check_data(pattern, (2*PATTERN_LEN), pins[1], pins[2], pins[3], &dummy) 
-                                ? "found pattern or other" : "no pattern found");
-                        init_pins(pins[0], pins[1], pins[3], IGNOREPIN /*ntrst*/);
-                        Serial.println(check_data(pattern, (2*PATTERN_LEN), pins[1], pins[3], pins[2], &dummy) 
-                                ? "found pattern or other" : "no pattern found");
-                        break;
-                case 'l':
-                        loopback_check();
-                        break;
-                case 'i':
-                        scan_idcode();
-                        break;
-                case 'b':
-                        shift_bypass();
-                        break;
-                case 'x':
-                        Serial.print("pins");
-			print_pins(0, 1, 2, 3, IGNOREPIN);
-                        Serial.println();
-                        sample(SCAN_LEN+100, pins[0]/*tck*/, pins[1]/*tms*/, pins[3]/*tdi*/, pins[2]/*tdo*/);
-                        break;
-                case 'y':
-                        brute_ir(SCAN_LEN, pins[0]/*tck*/, pins[1]/*tms*/, pins[3]/*tdi*/, pins[2]/*tdo*/);
-                        break;
-                case 'v':
-                        VERBOSE = ~VERBOSE;
-                        Serial.println(VERBOSE ? "Verbose ON" : "Verbose OFF");
-                        break;
-                case 'd':
-                        DELAY = ~DELAY;
-                        Serial.println(DELAY ? "Delay ON" : "Delay OFF");
-                        break;
-                case '-':
-                        Serial.print("Delay microseconds: ");
-                        if (DELAYUS != 0 && DELAYUS > 1000) DELAYUS-=1000;
-                        else if (DELAYUS != 0 && DELAYUS <= 1000) DELAYUS-=100;
-                        Serial.println(DELAYUS,DEC);
-                        break;
-                case '+':
-                        Serial.print("Delay microseconds: ");
-                        if (DELAYUS < 1000) DELAYUS+=100;
-                        else DELAYUS+=1000;
-                        Serial.println(DELAYUS,DEC);
-                        break;
-                case 'r':
-                        PULLUP = ~PULLUP;
-                        Serial.println(PULLUP ? "Pullups ON" : "Pullups OFF");
-                        break;
-                default:
-                        Serial.println("unknown command");
-                case 'h':
-		{
+void help()
+{
 	                printProgStr(PSTR(  
+				"Short and long form commands can be used.\r\n"
 				"\r\n"
-				"s > scan\r\n"
-				"\r\n"
-				"l > loopback\r\n"
-				"    ignores tck,tms. if patterns passed to tdo pins are\r\n"
-				"    connected there is a short or a false-possitive\r\n"
-				"    condition exists that should be taken into account\r\n"
+                                "SCANS\r\n"
+                                "-----\r\n"
+				"s > pattern scan\r\n"
+				"p > pattern set\r\n"
+                                "    currently: ["));
+        Serial.print(pattern);
+        printProgStr(PSTR("]\r\n"
 				"\r\n"
 				"i > idcode scan\r\n"
 				"    ignores tdi. assumes IDCODE is default on reset state.\r\n"
@@ -742,33 +673,130 @@ void loop() {
 				"    times to check for consistancy or compare against\r\n"
 				"    active tdo lines found with loopback test.\r\n"
 				"\r\n"
-				"b > shift_bypass\r\n"
-				"    currently broken. need to add tck\r\n"
-				"\r\n"
-				"x > sample (aka boundary scan)\r\n"
-				"\r\n"
-				"y > brute force IR search\r\n"
-				"\r\n"
-				"1 > single check\r\n"
-				"    runs a full check on one code-defined tdi<>tdo pair and\r\n"
-				"    you will need to look at the main()/loop() code to specify.\r\n"
-				"r > pullup resistors on inputs on/off\r\n"
-				"    might increase stability when using a bad patch cable.\r\n"
-				"v > verbose on/off\r\n"
-				"    print tdo bits to console during testing. will slow\r\n"
+//				"b > bypass scan\r\n"
+//				"    currently broken. need to add tck\r\n"
+//				"\r\n"
+                                "ERATTA\r\n"
+                                "------\r\n"
+				"l > loopback check\r\n"
+				"    ignores tck,tms. if patterns passed to tdo pins are\r\n"
+				"    connected there is a short or a false-possitive\r\n"
+				"    condition exists that should be taken into account\r\n"
+				"r > pullups\r\n"
+				"    internal pullups on inputs, on/off. might increase\r\n"
+                                "    stability when using a bad patch cable.\r\n"
+				"v > verbose\r\n"
+				"    on/off. print tdo bits to console during testing. will slow\r\n"
 				"    down scan.\r\n"
-				"d > delay on/off\r\n"
-				"    will slow down scan.\r\n"
-				"- > delay - 1000us (or 100us)\r\n"
-				"+ > delay + 1000us\r\n"
-				"h > help\r\n"
-				"p > set pattern ["));
-			
-                        Serial.print(pattern);
-                        Serial.println("]");
-                        break;
-                } /* case 'h': */
-		}
-                Serial.print("\n> ");
+				"d > delay\r\n"
+				"    on/off. will slow down scan.\r\n"
+				"- > delay -\r\n"
+                                "    reduce delay by 1000us\r\n"
+				"+ > delay +\r\n"
+                                "h > help\r\n"
+				"\r\n"
+				"OTHER JTAG TESTS\r\n"
+				"----------------\r\n"
+                                "Each of the following will not scan/find JTAG and require\r\n"
+                                "that you manually set the JTAG pins. See their respective\r\n"
+                                "call from the loop() function of code to set.\r\n"
+				"\r\n"
+				"1 > pattern scan single\r\n"
+				"    runs a full check on one code-defined tdi<>tdo pair.\r\n"
+				"    look at the main()/loop() code to specify pins.\r\n"
+				"x > boundary scan\r\n"
+				"    checks code defined tdo for 4000+ bits.\r\n"
+				"    look at the main()/loop() code to specify pins.\r\n"
+				"y > irenum\r\n"
+                                "    sets every possible Instruction Register and then\r\n"
+                                "    checks the output of the Data Register.\r\n"
+				"    look at the main()/loop() code to specify pins.\r\n"
+				));
+}
+/*
+ * main()
+ */
+#define CMDLEN 20
+char command[CMDLEN];
+int dummy;
+void loop() 
+{
+        if (Serial.available())
+        {
+        // READ COMMAND
+        delay(5); // hoping read buffer is idle after 5 ms
+        int i = 0;
+        while (Serial.available() && i < CMDLEN-1) {
+                command[i++] = Serial.read();
         }
+        Serial.flush();
+        command[i] = 0; // terminate string
+        Serial.println(command); // echo back
+
+        // EXECUTE COMMAND
+        if     (strcmp(command, "pattern scan") == 0         || strcmp(command, "s") == 0)
+                scan();
+        else if(strcmp(command, "pattern scan single") == 0  || strcmp(command, "1") == 0) 
+        {
+                init_pins(pins[0], pins[1], pins[2], IGNOREPIN /*ntrst*/);
+                Serial.println(check_data(pattern, (2*PATTERN_LEN), pins[1], pins[2], pins[3], &dummy) 
+                        ? "found pattern or other" : "no pattern found");
+                init_pins(pins[0], pins[1], pins[3], IGNOREPIN /*ntrst*/);
+                Serial.println(check_data(pattern, (2*PATTERN_LEN), pins[1], pins[3], pins[2], &dummy) 
+                        ? "found pattern or other" : "no pattern found");
+        }
+        else if(strcmp(command, "pattern set") == 0          || strcmp(command, "p") == 0)
+                set_pattern();
+        else if(strcmp(command, "loopback check") == 0       || strcmp(command, "l") == 0)
+                loopback_check();
+        else if(strcmp(command, "idcode scan") == 0          || strcmp(command, "i") == 0)
+                scan_idcode();
+        else if(strcmp(command, "bypass scan") == 0               || strcmp(command, "b") == 0)
+                shift_bypass();
+        else if(strcmp(command, "boundary scan") == 0        || strcmp(command, "x") == 0)
+        {
+                Serial.print("pins");
+        	print_pins(0, 1, 2, 3, IGNOREPIN);
+                Serial.println();
+                sample(SCAN_LEN+100, pins[0]/*tck*/, pins[1]/*tms*/, pins[3]/*tdi*/, pins[2]/*tdo*/);
+        }
+        else if(strcmp(command, "irenum") == 0               || strcmp(command, "y") == 0)
+                brute_ir(SCAN_LEN, pins[0]/*tck*/, pins[1]/*tms*/, pins[3]/*tdi*/, pins[2]/*tdo*/);
+        else if(strcmp(command, "verbose") == 0              || strcmp(command, "v") == 0)
+        {
+                VERBOSE = ~VERBOSE;
+                Serial.println(VERBOSE ? "Verbose ON" : "Verbose OFF");
+        }
+        else if(strcmp(command, "delay") == 0              || strcmp(command, "d") == 0)
+        {
+                DELAY = ~DELAY;
+                Serial.println(DELAY ? "Delay ON" : "Delay OFF");
+        }
+        else if(strcmp(command, "delay -") == 0              || strcmp(command, "-") == 0)
+        {
+                Serial.print("Delay microseconds: ");
+                if (DELAYUS != 0 && DELAYUS > 1000) DELAYUS-=1000;
+                else if (DELAYUS != 0 && DELAYUS <= 1000) DELAYUS-=100;
+                Serial.println(DELAYUS,DEC);
+        }
+        else if(strcmp(command, "delay +") == 0              || strcmp(command, "+") == 0)
+        {
+                Serial.print("Delay microseconds: ");
+                if (DELAYUS < 1000) DELAYUS+=100;
+                else DELAYUS+=1000;
+                Serial.println(DELAYUS,DEC);
+        }
+        else if(strcmp(command, "pullups") == 0              || strcmp(command, "r") == 0)
+        {
+                PULLUP = ~PULLUP;
+                Serial.println(PULLUP ? "Pullups ON" : "Pullups OFF");
+        }
+        else if(strcmp(command, "help") == 0                 || strcmp(command, "h") == 0)
+                help();
+        else {
+                Serial.println("unknown command");
+                help();
+        }
+        Serial.print("\n> ");
+        } 
 }
