@@ -68,9 +68,9 @@
  * Arduino Pro: usable digital pins are: 2-12, 14-19 (ANALOG 0-5)
  *   (0,1 are the serial line, 13 is connected to the LED)
  */
-byte       pins[] = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
-char * pinnames[] = { "DIG_2", "DIG_3", "DIG_4", "DIG_5", "DIG_6",
-		      "DIG_7", "DIG_8", "DIG_9", "DIG_10", "DIG_11" };
+//byte       pins[] = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
+//char * pinnames[] = { "DIG_2", "DIG_3", "DIG_4", "DIG_5", "DIG_6",
+//		      "DIG_7", "DIG_8", "DIG_9", "DIG_10", "DIG_11" };
 
 // Pattern used for scan() and loopback() tests
 #define PATTERN_LEN 64
