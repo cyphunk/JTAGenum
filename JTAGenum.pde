@@ -530,6 +530,11 @@ static void shift_bypass()
         }
         printProgStr(PSTR("================================\r\n"));
 }
+/* ir_state()
+ * Set TAP to Reset then ShiftIR. 
+ * Shift in state[] as IR value.
+ * Switch to ShiftDR state and end.
+ */
 void ir_state(char state[], int tck, int tms, int tdi) 
 {
 #ifdef DEBUGIR
@@ -601,7 +606,8 @@ static void brute_ir(int iterations, int tck, int tms, int tdi, int tdo, int ntr
                 iractive=0;
                 // send instruction and go to ShiftDR (ir_state() does this already)
                 // convert ir to string.
-                for (int i=0; i<IR_LEN; i++) ir_buf[i]=bitRead(ir, i)+'0';
+                for (int i=0; i<IR_LEN; i++) 
+                        ir_buf[i]=bitRead(ir, i)+'0';
                 ir_buf[IR_LEN]=0;// terminate
                 ir_state(ir_buf, tck, tms, tdi);
 		// we are now in TAP_SHIFTDR state
