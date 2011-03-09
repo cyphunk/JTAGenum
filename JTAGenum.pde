@@ -97,7 +97,7 @@ static char pattern[PATTERN_LEN] = "0110011101001101101000010111001001";
 
 // Target specific, check your documentation or guess 
 #define SCAN_LEN                  1890 // used for IR enum. bigger the better
-#define IR_LEN                    16  
+#define IR_LEN                    5
 // IR registers must be IR_LEN wide:
 #define IR_IDCODE                 "01100" // always 011
 #define IR_SAMPLE                 "10100" // always 101
@@ -595,6 +595,9 @@ static void brute_ir(int iterations, int tck, int tms, int tdi, int tdo, int ntr
 {
         printProgStr(PSTR("================================\r\n"
 			  "Starting brute force scan of IR instructions...\r\n"
+			  "NOTE: If Verbose mode is off output is only printed\r\n"
+                          "      after activity (bit changes) are noticed and\r\n"
+			  "      you might not see the first bit of output.\r\n"
 			  "IR_LEN set to ")); 
         Serial.println(IR_LEN,DEC);
 
@@ -612,21 +615,21 @@ static void brute_ir(int iterations, int tck, int tms, int tdi, int tdo, int ntr
                 ir_state(ir_buf, tck, tms, tdi);
 		// we are now in TAP_SHIFTDR state
 
-                prevread = digitalRead(tdo);
-
-                for (int i=0; i<iterations; i++) {
+                prevread = pulse_tdo(tck, tdo);
+                for (int i=0; i<iterations-1; i++) {
                         // no need to set TMS. It's set to the '0' state to force a Shift DR by the TAP
                         tdo_read = pulse_tdo(tck, tdo);
                         if (tdo_read != prevread) iractive++;
                         
                         if (iractive || VERBOSE) {
-                                Serial.print(tdo_read,DEC);
+                                Serial.print(prevread,DEC);
                                 if (i%16 == 15) Serial.print(" ");
                                 if (i%128 == 127) Serial.println();
                         }
                         prevread = tdo_read;
                 }
                 if (iractive || VERBOSE) {
+                        Serial.print(prevread,DEC);
                         Serial.print("  Ir ");
                         Serial.print(ir_buf);
                         Serial.print("  bits changed ");
