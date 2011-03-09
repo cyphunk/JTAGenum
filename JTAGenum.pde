@@ -488,44 +488,56 @@ static void scan_idcode()
 
 static void shift_bypass()
 {
-        int tdi, tdo;
+        int tdi, tdo, tck;
         int checkdataret;
 	int reg_len;
 
 	printProgStr(PSTR("================================\r\n"
 			  "Starting shift of pattern through bypass...\r\n"
-			  "(assuming TDI->bypassreg->TDO state (no tck or tms))"));
-        for(tdi=0;tdi<pinslen;tdi++) {
-                for(tdo=0;tdo<pinslen;tdo++) {
-                        if(tdo == tdi) continue;
-                        if(VERBOSE) {
-                                Serial.print(" tdi:");
-                                Serial.print(pinnames[tdi]);
-                                Serial.print(" tdo:");
-                                Serial.print(pinnames[tdo]);
-                                Serial.print("    ");
+			  "Assumes bypass is the default DR on reset.\r\n"
+                          "Hence, no need to check for TMS. Also, currently\r\n"
+                          "not checking for nTRST, which might not work\r\n"));
+        for(tck=0;tck<pinslen;tck++) {
+                for(tdi=0;tdi<pinslen;tdi++) {
+                        if(tdi == tck) continue;
+                        for(tdo=0;tdo<pinslen;tdo++) {
+                                if(tdo == tck) continue;
+                                if(tdo == tdi) continue;
+                                if(VERBOSE) {
+                                        Serial.print(" tck:");
+                                        Serial.print(pinnames[tck]);
+                                        Serial.print(" tdi:");
+                                        Serial.print(pinnames[tdi]);
+                                        Serial.print(" tdo:");
+                                        Serial.print(pinnames[tdo]);
+                                        Serial.print("    ");
+                                }
+        
+                                init_pins(pins[tck], IGNOREPIN/*tms*/,pins[tdi], IGNOREPIN /*ntrst*/);
+                                // if bypass is default on start, no need to init TAP state
+                                checkdataret = check_data(pattern, (2*PATTERN_LEN), pins[tck], pins[tdi], pins[tdo], &reg_len);
+                                if(checkdataret == 1) {
+                                        Serial.print("FOUND! ");
+                                        Serial.print(" tck:");
+                                        Serial.print(pinnames[tck]);
+                                        Serial.print(" tdo:");
+                                        Serial.print(pinnames[tdo]);
+                                        Serial.print(" tdi:");
+                                        Serial.println(pinnames[tdi]);
+                                }
+                                else if(checkdataret > 1) {
+                                        Serial.print("active ");
+                                        Serial.print(" tck:");
+                                        Serial.print(pinnames[tck]);
+                                        Serial.print(" tdo:");
+                                        Serial.print(pinnames[tdo]);
+                                        Serial.print(" tdi:");
+                                        Serial.print(pinnames[tdi]);
+                                        Serial.print("  bits toggled:");
+                                        Serial.println(checkdataret);
+                                }
+                                else if(VERBOSE) Serial.println();
                         }
-
-                        init_pins(IGNOREPIN/*tck*/, IGNOREPIN/*tms*/,pins[tdi], IGNOREPIN /*ntrst*/);
-                        // if bypass is default on start, no need to init TAP state
-                        checkdataret = check_data(pattern, (2*PATTERN_LEN), IGNOREPIN/*tck*/, pins[tdi], pins[tdo], &reg_len);
-                        if(checkdataret == 1) {
-                                Serial.print("FOUND! ");
-                                Serial.print(" tdo:");
-                                Serial.print(pinnames[tdo]);
-                                Serial.print(" tdi:");
-                                Serial.println(pinnames[tdi]);
-                        }
-                        else if(checkdataret > 1) {
-                                Serial.print("active ");
-                                Serial.print(" tdo:");
-                                Serial.print(pinnames[tdo]);
-                                Serial.print(" tdi:");
-                                Serial.print(pinnames[tdi]);
-                                Serial.print("  bits toggled:");
-                                Serial.println(checkdataret);
-                        }
-                        else if(VERBOSE) Serial.println();
                 }
         }
         printProgStr(PSTR("================================\r\n"));
@@ -680,28 +692,31 @@ void printProgStr(const char *str)
 
 void help()
 {
-	                printProgStr(PSTR(  
+        printProgStr(PSTR(  
 				"Short and long form commands can be used.\r\n"
 				"\r\n"
                                 "SCANS\r\n"
                                 "-----\r\n"
-				"s > pattern scan\r\n"
-				"p > pattern set\r\n"
+                		"s > pattern scan\r\n"
+                                "    Scans for all JTAG pins. Attempts to set TAP state to\r\n"
+                                "    DR_SHIFT and then shift the pattern through the DR.\r\n"
+                		"p > pattern set\r\n"
                                 "    currently: ["));
         Serial.print(pattern);
         printProgStr(PSTR("]\r\n"
 				"\r\n"
 				"i > idcode scan\r\n"
-				"    ignores tdi. assumes IDCODE is default on reset state.\r\n"
-				"    sets TAP state to DR_SHIFT and prints TDO to console\r\n"
-				"    if TDO appears active. Human examination required to\r\n"
+				"    Assumes IDCODE is default DR on reset. Ignores TDI.\r\n"
+				"    Sets TAP state to DR_SHIFT and prints TDO to console\r\n"
+				"    when TDO appears active. Human examination required to\r\n"
 				"    determine if actual IDCODE is present. Run several\r\n"
 				"    times to check for consistancy or compare against\r\n"
 				"    active tdo lines found with loopback test.\r\n"
 				"\r\n"
-//				"b > bypass scan\r\n"
-//				"    currently broken. need to add tck\r\n"
-//				"\r\n"
+				"b > bypass scan\r\n"
+				"    Assumes BYPASS is default DR on reset. Ignores TMS and\r\n"
+				"    shifts pattern[] through TDI/TDO using TCK for clock.\r\n"
+				"\r\n"
                                 "ERATTA\r\n"
                                 "------\r\n"
 				"l > loopback check\r\n"
