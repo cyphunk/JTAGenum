@@ -53,17 +53,15 @@
 #define CPU_PRESCALE(n) (CLKPR = 0x80, CLKPR = (n))
 
 // Setup the pins to be checked
-// The first (currently commented out) is an example broad scan
-// used to determine which pins from a set are meant for JTAG.
-// The second (uncommented) is used when you know the JTAG pins
-// already.
+/*
+ * Teensy Arduino clone
+ */
 //byte pins[] = { 
-//        PIN_D0,  PIN_D1,  PIN_D2,  PIN_D3,  PIN_D4
+//        PIN_B0, PIN_B1, PIN_B2, PIN_B4, PIN_B5
 //};
 //char * pinnames[] = {
-//          "D0",    "D1",    "D2",    "D3",    "D4"
+//        "TRST", " TDI", " TMS", " TCK", " TDO"
 //};
-
 /*
  * Arduino Pro: usable digital pins are: 2-12, 14-19 (ANALOG 0-5)
  *   (0,1 are the serial line, 13 is connected to the LED)
@@ -71,6 +69,17 @@
 byte       pins[] = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 char * pinnames[] = { "DIG_2", "DIG_3", "DIG_4", "DIG_5", "DIG_6",
 		      "DIG_7", "DIG_8", "DIG_9", "DIG_10", "DIG_11" };
+
+// Once you have found the JTAG pins you can define
+// the following to allow for the boundary scan and
+// irenum functions to be run. Define the values
+// as the index for the pins[] array of the found
+// jtag pin:
+#define  TCK  3
+#define  TMS  2
+#define  TDI  1
+#define  TDO  4
+#define  TRST 0
 
 // Pattern used for scan() and loopback() tests
 #define PATTERN_LEN 64
@@ -88,10 +97,10 @@ static char pattern[PATTERN_LEN] = "0110011101001101101000010111001001";
 
 // Target specific, check your documentation or guess 
 #define SCAN_LEN                  1890 // used for IR enum. bigger the better
-#define IR_LEN                    10  
+#define IR_LEN                    16  
 // IR registers must be IR_LEN wide:
-#define IR_IDCODE                 "0110000000" // always 011
-#define IR_SAMPLE                 "1010000000" // always 101
+#define IR_IDCODE                 "01100" // always 011
+#define IR_SAMPLE                 "10100" // always 101
 #define IR_PRELOAD                IR_SAMPLE
 
 /*
@@ -107,7 +116,8 @@ static char pattern[PATTERN_LEN] = "0110011101001101101000010111001001";
 #define TAP_RESET        "11111"      // looping 1 will return 
                                       // IDCODE if reg available
 #define TAP_SHIFTDR      "111110100"
-#define TAP_SHIFTIR      "1111101100"
+#define TAP_SHIFTIR      "1111101100" // -11111> Reset -0> Idle -1> SelectDR
+                                      // -1> SelectIR -0> CaptureIR -0> ShiftIR
 
 // Ignore TCK, TMS use in loopback check:
 #define IGNOREPIN 0xFFFF 
@@ -136,7 +146,7 @@ void setup(void)
 void tap_state(char tap_state[], int tck, int tms) 
 {
 #ifdef DEBUGTAP
-        Serial.print("tms set to: ");
+        Serial.print("tap_state: tms set to: ");
 #endif
         while (*tap_state) { // exit when string \0 terminator encountered
                 if (DELAY) delayMicroseconds(50);
@@ -399,7 +409,7 @@ static void loopback_check()
  */
 static void scan_idcode()
 {
-        int tck, tms, tdo, tdi;
+        int tck, tms, tdo, tdi, ntrst;
 	int i,j;
 	int nr; /* number of devices */
 	int tdo_read;
@@ -411,61 +421,67 @@ static void scan_idcode()
         char idcodestr[] = "                                ";
         int idcode_i=31; // TODO: artifact that might need to be configurable
         uint32_t idcode;
-        for(tck=0;tck<pinslen;tck++) {
-                for(tms=0;tms<pinslen;tms++) {
-                        if(tms == tck) continue;
-			for(tdi=0;tdi<pinslen;tdi++) {
-                                if(tdi == tck) continue;
-                                if(tdi == tms) continue;
-				for(tdo=0; tdo<pinslen; tdo++) {
-					if(tdo == tdi || tdo == tck || tdo == tms) continue;
-
-					if(VERBOSE) {
-						print_pins(tck,tms,tdo,tdi,IGNOREPIN);
-						Serial.print("    ");
-					}
-
-					init_pins(pins[tck], pins[tms], pins[tdi], IGNOREPIN /*ntrst*/);
-
-					/* we hope that IDCODE is the IR content after reset */
-					tap_state(TAP_RESET, pins[tck], pins[tms]);
-					tap_state(TAP_SHIFTDR, pins[tck], pins[tms]);
-					
-					/* j is the number of bits we pulse into TDI and read from TDO */
-					for(i=0; i < MAX_DEV_NR; i++) {
-						idcodes[i] = 0;
-						for(j=0; j<IDCODE_LEN;j++) {
-							/* we send '0' in */
-							pulse_tdi(pins[tck], pins[tdi], 0);
-							tdo_read = digitalRead(pins[tdo]);
-							if (tdo_read)
-								idcodes[i] |= ((uint32_t)1)<<j;
-
-							if (VERBOSE)
-								Serial.print(tdo_read,DEC);
-						} /* for(j=0; ... ) */
-						if (VERBOSE) {
-							Serial.print(" ");
-							Serial.println(idcodes[i],HEX);
+	for(ntrst=0;ntrst<pinslen;ntrst++) {
+		for(tck=0;tck<pinslen;tck++) {
+			if(tck == ntrst) continue;
+			for(tms=0;tms<pinslen;tms++) {
+				if(tms == ntrst) continue;
+				if(tms == tck) continue;
+				for(tdo=0;tdo<pinslen;tdo++) {
+					if(tdo == ntrst) continue;
+					if(tdo == tck) continue;
+					if(tdo == tms) continue;
+					for(tdi=0;tdi<pinslen;tdi++) {
+						if(tdi == ntrst) continue;
+						if(tdi == tck) continue;
+						if(tdi == tms) continue;
+						if(tdi == tdo) continue;
+						if(VERBOSE) {
+							print_pins(tck, tms, tdo, tdi, ntrst);
+							Serial.print("    ");
 						}
-						/* save time: break at the first idcode with bit0 != 1 */
-						if (!(idcodes[i] & 1) || idcodes[i] == 0xffffffff)
-							break;
-					} /* for(i=0; ...) */
+						init_pins(pins[tck], pins[tms], pins[tdi], pins[ntrst]);
 
-					if (i > 0) {
-						print_pins(tck,tms,tdo,tdi,IGNOREPIN);
-						Serial.print("  devices: ");
-						Serial.println(i,DEC);
-						for(j=0; j < i; j++) {
-							Serial.print("  0x");
-							Serial.println(idcodes[j],HEX);
-						}
-					} /* if (i > 0) */
-				} /* for(tdo=0; ... ) */
-			} /* for(tdi=0; ...) */
-		} /* for(tms=0; ...) */
-	} /* for(tck=0; ...) */
+        					/* we hope that IDCODE is the default DR after reset */
+        					tap_state(TAP_RESET, pins[tck], pins[tms]);
+        					tap_state(TAP_SHIFTDR, pins[tck], pins[tms]);
+        					
+        					/* j is the number of bits we pulse into TDI and read from TDO */
+        					for(i=0; i < MAX_DEV_NR; i++) {
+        						idcodes[i] = 0;
+        						for(j=0; j<IDCODE_LEN;j++) {
+        							/* we send '0' in */
+        							pulse_tdi(pins[tck], pins[tdi], 0);
+        							tdo_read = digitalRead(pins[tdo]);
+        							if (tdo_read)
+        								idcodes[i] |= ((uint32_t)1)<<j;
+        
+        							if (VERBOSE)
+        								Serial.print(tdo_read,DEC);
+        						} /* for(j=0; ... ) */
+        						if (VERBOSE) {
+        							Serial.print(" ");
+        							Serial.println(idcodes[i],HEX);
+        						}
+        						/* save time: break at the first idcode with bit0 != 1 */
+        						if (!(idcodes[i] & 1) || idcodes[i] == 0xffffffff)
+        							break;
+        					} /* for(i=0; ...) */
+        
+        					if (i > 0) {
+        						print_pins(tck,tms,tdo,tdi,ntrst);
+        						Serial.print("  devices: ");
+        						Serial.println(i,DEC);
+        						for(j=0; j < i; j++) {
+        							Serial.print("  0x");
+        							Serial.println(idcodes[j],HEX);
+        						}
+        					} /* if (i > 0) */
+        				} /* for(tdo=0; ... ) */
+        			} /* for(tdi=0; ...) */
+        		} /* for(tms=0; ...) */
+        	} /* for(tck=0; ...) */
+	} /* for(trst=0; ...) */
 
         printProgStr(PSTR("================================\r\n"));
 }
@@ -516,9 +532,12 @@ static void shift_bypass()
 }
 void ir_state(char state[], int tck, int tms, int tdi) 
 {
+#ifdef DEBUGIR
+        Serial.println("ir_state: set TAP to ShiftIR:");
+#endif
         tap_state(TAP_SHIFTIR, tck, tms);
 #ifdef DEBUGIR
-        Serial.print("ir set to: ");
+        Serial.print("ir_state: pulse_tdi to: ");
 #endif
         for (int i=0; i < IR_LEN; i++) {
                 if (DELAY) delayMicroseconds(50);
@@ -527,12 +546,10 @@ void ir_state(char state[], int tck, int tms, int tdi)
                 if (i == IR_LEN-1) {
                         digitalWrite(tms, HIGH); // ExitIR
 #ifdef DEBUGIR
-                        Serial.print("ExitIR");
+                        Serial.print(" (will be in ExitIR after next bit) ");
 #endif
                 }
                 pulse_tdi(tck, tdi, *state-'0');
-                //                digitalWrite(tck, LOW);                
-                //                digitalWrite(tdi, *state-'0'); // conv from ascii pattern
 #ifdef DEBUGIR
                 Serial.print(*state-'0', DEC);
 #endif
@@ -540,18 +557,18 @@ void ir_state(char state[], int tck, int tms, int tdi)
                 *state++;
         }
 #ifdef DEBUGIR
-        Serial.print("\r\nUpdateIR with ");
+        Serial.println("\r\nir_state: Change TAP from ExitIR to ShiftDR:");
 #endif
         // a reset would cause IDCODE instruction to be selected again
-        tap_state("11", tck, tms); // UpdateIR & SelectDR
-        tap_state("00", tck, tms); // CaptureDR & ShiftDR
+        tap_state("1100", tck, tms); // -1> UpdateIR -1> SelectDR -0> CaptureDR -0> ShiftDR
+        //tap_state("00", tck, tms); // CaptureDR & ShiftDR
 
 }
-static void sample(int iterations, int tck, int tms, int tdi, int tdo)
+static void sample(int iterations, int tck, int tms, int tdi, int tdo, int ntrst=IGNOREPIN)
 {
         printProgStr(PSTR("================================\r\n"
 			  "Starting sample (boundary scan)...\r\n")); 
-        init_pins(tck, tms ,tdi, IGNOREPIN /*ntrst*/);  
+        init_pins(tck, tms ,tdi, ntrst);  
 
         // send instruction and go to ShiftDR
         ir_state(IR_SAMPLE, tck, tms, tdi);
@@ -569,14 +586,14 @@ static void sample(int iterations, int tck, int tms, int tdi, int tdo)
 }
 
 char ir_buf[IR_LEN+1];
-static void brute_ir(int iterations, int tck, int tms, int tdi, int tdo)
+static void brute_ir(int iterations, int tck, int tms, int tdi, int tdo, int ntrst=IGNOREPIN)
 {
         printProgStr(PSTR("================================\r\n"
 			  "Starting brute force scan of IR instructions...\r\n"
 			  "IR_LEN set to ")); 
         Serial.println(IR_LEN,DEC);
 
-        init_pins(tck, tms ,tdi, IGNOREPIN /*ntrst*/);  
+        init_pins(tck, tms ,tdi, ntrst);  
         int iractive;
         byte tdo_read;
         byte prevread;
@@ -738,12 +755,12 @@ void loop()
                 scan();
         else if(strcmp(command, "pattern scan single") == 0  || strcmp(command, "1") == 0) 
         {
-                init_pins(pins[0], pins[1], pins[2], IGNOREPIN /*ntrst*/);
-                Serial.println(check_data(pattern, (2*PATTERN_LEN), pins[1], pins[2], pins[3], &dummy) 
-                        ? "found pattern or other" : "no pattern found");
-                init_pins(pins[0], pins[1], pins[3], IGNOREPIN /*ntrst*/);
-                Serial.println(check_data(pattern, (2*PATTERN_LEN), pins[1], pins[3], pins[2], &dummy) 
-                        ? "found pattern or other" : "no pattern found");
+                init_pins(pins[TCK], pins[TMS], pins[TDI], pins[TRST] /*ntrst*/);
+                tap_state(TAP_SHIFTIR, pins[TCK], pins[TMS]);
+                if (check_data(pattern, (2*PATTERN_LEN), pins[TCK], pins[TDI], pins[TDO], &dummy))
+                        Serial.println("found pattern or other");
+                else
+                        Serial.println("no pattern found");
         }
         else if(strcmp(command, "pattern set") == 0          || strcmp(command, "p") == 0)
                 set_pattern();
@@ -751,23 +768,23 @@ void loop()
                 loopback_check();
         else if(strcmp(command, "idcode scan") == 0          || strcmp(command, "i") == 0)
                 scan_idcode();
-        else if(strcmp(command, "bypass scan") == 0               || strcmp(command, "b") == 0)
+        else if(strcmp(command, "bypass scan") == 0          || strcmp(command, "b") == 0)
                 shift_bypass();
         else if(strcmp(command, "boundary scan") == 0        || strcmp(command, "x") == 0)
         {
                 Serial.print("pins");
-        	print_pins(0, 1, 2, 3, IGNOREPIN);
+        	print_pins(TCK, TMS, TDO, TDI, TRST);
                 Serial.println();
-                sample(SCAN_LEN+100, pins[0]/*tck*/, pins[1]/*tms*/, pins[3]/*tdi*/, pins[2]/*tdo*/);
+                sample(SCAN_LEN+100, pins[TCK], pins[TMS], pins[TDI], pins[TDO], pins[TRST]);
         }
         else if(strcmp(command, "irenum") == 0               || strcmp(command, "y") == 0)
-                brute_ir(SCAN_LEN, pins[0]/*tck*/, pins[1]/*tms*/, pins[3]/*tdi*/, pins[2]/*tdo*/);
+                brute_ir(SCAN_LEN,   pins[TCK], pins[TMS], pins[TDI], pins[TDO], pins[TRST]);
         else if(strcmp(command, "verbose") == 0              || strcmp(command, "v") == 0)
         {
                 VERBOSE = ~VERBOSE;
                 Serial.println(VERBOSE ? "Verbose ON" : "Verbose OFF");
         }
-        else if(strcmp(command, "delay") == 0              || strcmp(command, "d") == 0)
+        else if(strcmp(command, "delay") == 0                || strcmp(command, "d") == 0)
         {
                 DELAY = ~DELAY;
                 Serial.println(DELAY ? "Delay ON" : "Delay OFF");
