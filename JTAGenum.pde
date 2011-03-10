@@ -274,6 +274,10 @@ static int check_data(char pattern[], int iterations, int tck, int tdi, int tdo,
 
 static void print_pins(int tck, int tms, int tdo, int tdi, int ntrst)
 {
+	if (ntrst != IGNOREPIN) {
+		Serial.print(" ntrst:");
+		Serial.print(pinnames[ntrst]);
+	}
 	Serial.print(" tck:");
 	Serial.print(pinnames[tck]);
 	Serial.print(" tms:");
@@ -283,10 +287,6 @@ static void print_pins(int tck, int tms, int tdo, int tdi, int ntrst)
 	if (tdi != IGNOREPIN) {
 		Serial.print(" tdi:");
 		Serial.print(pinnames[tdi]);
-	}
-	if (ntrst != IGNOREPIN) {
-		Serial.print(" ntrst:");
-		Serial.print(pinnames[ntrst]);
 	}
 }
 
