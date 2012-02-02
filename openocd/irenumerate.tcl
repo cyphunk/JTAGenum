@@ -23,7 +23,11 @@
 #       (defined by iterations)
 #
 
+
+set padlen 800
+# padlen = default max length to shift through
 proc drlen { tap IR } {
+    global padlen
 	irscan $tap $IR -endstate IRPAUSE
 
 	#puts "putting padding in DR"

@@ -308,16 +308,16 @@ static void scan()
 			if(tck == ntrst) continue;
 			for(tms=0;tms<pinslen;tms++) {
 				if(tms == ntrst) continue;
-				if(tms == tck) continue;
+				if(tms == tck  ) continue;
 				for(tdo=0;tdo<pinslen;tdo++) {
 					if(tdo == ntrst) continue;
-					if(tdo == tck) continue;
-					if(tdo == tms) continue;
+					if(tdo == tck  ) continue;
+					if(tdo == tms  ) continue;
 					for(tdi=0;tdi<pinslen;tdi++) {
 						if(tdi == ntrst) continue;
-						if(tdi == tck) continue;
-						if(tdi == tms) continue;
-						if(tdi == tdo) continue;
+						if(tdi == tck  ) continue;
+						if(tdi == tms  ) continue;
+						if(tdi == tdo  ) continue;
 						if(VERBOSE) {
 							print_pins(tck, tms, tdo, tdi, ntrst);
 							Serial.print("	  ");
@@ -339,11 +339,11 @@ static void scan()
 							Serial.println(checkdataret);
 						}
 						else if(VERBOSE) Serial.println();										  
-					}
-				}
-			}
-		}
-	}
+					} /* for(tdi=0; ... ) */
+				} /* for(tdo=0; ... ) */
+			} /* for(tms=0; ... ) */
+		} /* for(tck=0; ... ) */
+	} /* for(ntrst=0; ... ) */
 	printProgStr(PSTR("================================\r\n"));
 }
 /*
@@ -426,16 +426,16 @@ static void scan_idcode()
 			if(tck == ntrst) continue;
 			for(tms=0;tms<pinslen;tms++) {
 				if(tms == ntrst) continue;
-				if(tms == tck) continue;
+				if(tms == tck  ) continue;
 				for(tdo=0;tdo<pinslen;tdo++) {
 					if(tdo == ntrst) continue;
-					if(tdo == tck) continue;
-					if(tdo == tms) continue;
+					if(tdo == tck  ) continue;
+					if(tdo == tms  ) continue;
 					for(tdi=0;tdi<pinslen;tdi++) {
 						if(tdi == ntrst) continue;
-						if(tdi == tck) continue;
-						if(tdi == tms) continue;
-						if(tdi == tdo) continue;
+						if(tdi == tck  ) continue;
+						if(tdi == tms  ) continue;
+						if(tdi == tdo  ) continue;
 						if(VERBOSE) {
 							print_pins(tck, tms, tdo, tdi, ntrst);
 							Serial.print("	  ");
