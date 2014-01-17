@@ -54,32 +54,22 @@
 
 // Setup the pins to be checked
 /*
- * Teensy Arduino clone
+ * Teensy: usable digital pins are: A0-A7
+ *	 (13 is connected to the LED)
  */
-//byte pins[] = { 
-//		  PIN_B0, PIN_B1, PIN_B2, PIN_B4, PIN_B5
-//};
-//char * pinnames[] = {
-//		  "TRST", " TDI", " TMS", " TCK", " TDO"
-//};
-/*
- * Arduino Pro: usable digital pins are: 2-12, 14-19 (ANALOG 0-5)
- *	 (0,1 are the serial line, 13 is connected to the LED)
- */
-byte	   pins[] = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
-char * pinnames[] = { "DIG_2", "DIG_3", "DIG_4", "DIG_5", "DIG_6",
-                      "DIG_7", "DIG_8", "DIG_9", "DIG_10", "DIG_11" };
+byte	   pins[] = {  A0 ,  A1 ,  A2 ,  A3 ,  A4 ,  A5 ,  A6 ,  A7  };
+char * pinnames[] = { "A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7" };
 
 // Once you have found the JTAG pins you can define
 // the following to allow for the boundary scan and
 // irenum functions to be run. Define the values
 // as the index for the pins[] array of the found
 // jtag pin:
-#define	TCK                      3
-#define	TMS                      2
-#define	TDI                      1
-#define	TDO                      4
-#define	TRST                     0
+#define	TCK                      0
+#define	TMS                      1
+#define	TDO                      2
+#define	TDI                      3
+#define	TRST                     4
 
 // Pattern used for scan() and loopback() tests
 #define PATTERN_LEN              64
@@ -134,7 +124,8 @@ const byte pinslen               = sizeof(pins)/sizeof(pins[0]);
 void setup(void)
 {
         // Uncomment for 3.3v boards. Cuts clock in half
-        CPU_PRESCALE(0x01); 
+        // only on avr based teensy hardware
+        //CPU_PRESCALE(0x01); 
         Serial.begin(115200);
 }
 
@@ -685,7 +676,7 @@ void printProgStr(const char *str)
 	char c;
 	if(!str) return;
 	while((c = pgm_read_byte(str++)))
-		Serial.print(c,BYTE);
+		Serial.print(c);
 }
 
 void help()
