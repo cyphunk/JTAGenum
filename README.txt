@@ -4,6 +4,7 @@ authors and code branches:
  cyphunk  http://github.com/cyphunk/JTAGenum/
  jal2     http://github.com/jal2/JTAGenum/
  zoobab   http://new.hackerspace.be/JTAG_pinout_detector
+ z1Y2x    https://github.com/z1Y2x/JTAGenum/
 
 For questions, help, changes, repository write access or 
 interesting targets: cyphunk@gmail.com with gpg 0x490F3380
