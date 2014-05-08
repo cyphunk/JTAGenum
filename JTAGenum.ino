@@ -24,6 +24,7 @@
  cyphunk  http://github.com/cyphunk/JTAGenum/
  jal2	  http://github.com/jal2/JTAGenum/
  zoobab	  http://new.hackerspace.be/JTAG_pinout_detector
+ z1Y2x    https://github.com/z1Y2x/JTAGenum/
  
  Most modifications are merged back into the first URL.
  Check the others for cutting edge or solutions if you 
@@ -54,11 +55,23 @@
 
 // Setup the pins to be checked
 /*
- * Teensy: usable digital pins are: A0-A7
+ * Teensy v3.1: usable digital pins are: A0-A7
  *	 (13 is connected to the LED)
  */
-byte	   pins[] = {  A0 ,  A1 ,  A2 ,  A3 ,  A4 ,  A5 ,  A6 ,  A7  };
-char * pinnames[] = { "A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7" };
+//byte       pins[] = {  A0 ,  A1 ,  A2 ,  A3 ,  A4 ,  A5 ,  A6 ,  A7  };
+//char * pinnames[] = { "A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7" };
+/*
+ * Teensy v2
+ */
+//byte       pins[] = { PIN_B0, PIN_B1, PIN_B2, PIN_B4, PIN_B5 };
+//char * pinnames[] = { "TRST", " TDI", " TMS", " TCK", " TDO" };
+/*
+ * Arduino Pro: usable digital pins are: 2-12, 14-19 (ANALOG 0-5)
+ *	 (0,1 are the serial line, 13 is connected to the LED)
+ */
+byte       pins[] = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
+char * pinnames[] = { "DIG_2", "DIG_3", "DIG_4", "DIG_5", "DIG_6",
+                      "DIG_7", "DIG_8", "DIG_9", "DIG_10", "DIG_11" };
 
 // Once you have found the JTAG pins you can define
 // the following to allow for the boundary scan and
@@ -124,7 +137,7 @@ const byte pinslen               = sizeof(pins)/sizeof(pins[0]);
 void setup(void)
 {
         // Uncomment for 3.3v boards. Cuts clock in half
-        // only on avr based teensy hardware
+        // only on avr based arduino & teensy hardware
         //CPU_PRESCALE(0x01); 
         Serial.begin(115200);
 }
