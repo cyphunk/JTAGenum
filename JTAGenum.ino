@@ -412,6 +412,17 @@ static void loopback_check()
 	printProgStr(PSTR("================================\r\n"));
 }
 
+static void list_pin_names()
+{
+	int pin;
+	Serial.print("The configured pins are:\r\n");
+	for(pin=0;pin<pinslen;pin++) {
+		Serial.print(pinnames[pin]);
+    Serial.print(" ");
+	}
+	Serial.println();
+}
+
 /*
  * Scan TDO for IDCODE. Handle MAX_DEV_NR many devices.
  * We feed zeros into TDI and wait for the first 32 of them to come out at TDO (after n * 32 bit).
@@ -744,6 +755,7 @@ void help()
 							"	 reduce delay by 1000us\r\n"
 			"+ > delay +\r\n"
 							"h > help\r\n"
+      "n > list pin names\r\n"
 			"\r\n"
 			"OTHER JTAG TESTS\r\n"
 			"----------------\r\n"
@@ -843,6 +855,8 @@ void loop()
 		}
 		else if(strcmp(command, "help") == 0                             || strcmp(command, "h") == 0)
 			help();
+		else if(strcmp(command, "list pin names") == 0                   || strcmp(command, "n") == 0)
+			list_pin_names();
 		else 
 		{
 			Serial.println("unknown command");
