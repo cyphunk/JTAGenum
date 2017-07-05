@@ -47,6 +47,9 @@
  * BEGIN USER DEFINITIONS
  */
 
+#define TRUE  255
+#define FALSE 0
+
 //#define DEBUGTAP
 //#define DEBUGIR
 
@@ -71,7 +74,8 @@
  */
 byte       pins[] = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 char * pinnames[] = { "DIG_2", "DIG_3", "DIG_4", "DIG_5", "DIG_6",
-                      "DIG_7", "DIG_8", "DIG_9", "DIG_10", "DIG_11" };
+                     "DIG_7", "DIG_8", "DIG_9", "DIG_10", "DIG_11" };
+
 
 // Once you have found the JTAG pins you can define
 // the following to allow for the boundary scan and
@@ -125,10 +129,10 @@ static char pattern[PATTERN_LEN] = "0110011101001101101000010111001001";
 // Ignore TCK, TMS use in loopback check:
 #define IGNOREPIN                0xFFFF 
 // Flags configured by UI:
-boolean VERBOSE                  = 0; // 255 = true
-boolean DELAY                    = 0;
+boolean VERBOSE                  = FALSE;
+boolean DELAY                    = FALSE;
 long    DELAYUS                  = 5000; // 5 Milliseconds
-boolean PULLUP                   = 255; 
+boolean PULLUP                   = TRUE; 
 
 
 const byte pinslen               = sizeof(pins)/sizeof(pins[0]);	 
@@ -729,7 +733,7 @@ void help()
 			"	 internal pullups on inputs, on/off. might increase\r\n"
 							"	 stability when using a bad patch cable.\r\n"
 			"v > verbose\r\n"
-			"	 on/off. print tdo bits to console during testing. will slow\r\n"
+			"	 on/off. print tdo bits to console during testing. If on, this will slow\r\n"
 			"	 down scan.\r\n"
 			"d > delay\r\n"
 			"	 on/off. will slow down scan.\r\n"
@@ -807,12 +811,12 @@ void loop()
 			brute_ir(SCAN_LEN,	 pins[TCK], pins[TMS], pins[TDI], pins[TDO], pins[TRST]);
 		else if(strcmp(command, "verbose") == 0                          || strcmp(command, "v") == 0)
 		{
-			VERBOSE = ~VERBOSE;
-			Serial.println(VERBOSE ? "Verbose ON" : "Verbose OFF");
-		}
+      if (VERBOSE == FALSE) {VERBOSE = TRUE;} else {VERBOSE = FALSE;}
+			Serial.println(VERBOSE ? "Verbose ON" : "Verbose OFF");   
+		} 
 		else if(strcmp(command, "delay") == 0                            || strcmp(command, "d") == 0)
 		{
-			DELAY = ~DELAY;
+			if (DELAY == FALSE) {DELAY = TRUE;} else {DELAY = FALSE;}
 			Serial.println(DELAY ? "Delay ON" : "Delay OFF");
 		}
 		else if(strcmp(command, "delay -") == 0                          || strcmp(command, "-") == 0)
@@ -831,7 +835,7 @@ void loop()
 		}
 		else if(strcmp(command, "pullups") == 0                          || strcmp(command, "r") == 0)
 		{
-			PULLUP = ~PULLUP;
+			if (PULLUP == FALSE) {PULLUP = TRUE;} else {PULLUP = FALSE;}
 			Serial.println(PULLUP ? "Pullups ON" : "Pullups OFF");
 		}
 		else if(strcmp(command, "help") == 0                             || strcmp(command, "h") == 0)
