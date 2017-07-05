@@ -79,9 +79,12 @@ char * pinnames[] = { "DIG_2", "DIG_3", "DIG_4", "DIG_5", "DIG_6",
 
 // Once you have found the JTAG pins you can define
 // the following to allow for the boundary scan and
-// irenum functions to be run. Define the values
-// as the index for the pins[] array of the found
-// jtag pin:
+// irenum functions to be run. 
+//
+// ************** VERY IMPORTANT! *****************
+// Define the values as the index for the pins[]
+// array of the found jtag pin.
+// ************************************************                     
 #define	TCK                      0
 #define	TMS                      1
 #define	TDO                      2
@@ -129,7 +132,7 @@ static char pattern[PATTERN_LEN] = "0110011101001101101000010111001001";
 // Ignore TCK, TMS use in loopback check:
 #define IGNOREPIN                0xFFFF 
 // Flags configured by UI:
-boolean VERBOSE                  = FALSE;
+boolean VERBOSE                  = TRUE;
 boolean DELAY                    = FALSE;
 long    DELAYUS                  = 5000; // 5 Milliseconds
 boolean PULLUP                   = TRUE; 
