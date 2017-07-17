@@ -1,12 +1,14 @@
 This document can also be found at:
- http://deadhacker.com/2010/02/03/jtag-enumeration/ 
+ http://deadhacker.com/2010/02/03/jtag-enumeration/
 authors and code branches:
  cyphunk  http://github.com/cyphunk/JTAGenum/
  jal2     http://github.com/jal2/JTAGenum/
  zoobab   http://hackerspace.be/JTAG_pinout_detector
  z1Y2x    https://github.com/z1Y2x/JTAGenum/
+ adanhawthorn https://github.com/adanhawthorn/JTAGenum
+ wardwouts https://github.com/wardwouts/JTAGenum
 
-For questions, help, changes, repository write access or 
+For questions, help, changes, repository write access or
 interesting targets: cyphunk@gmail.com with gpg 0x490F3380
 
 
