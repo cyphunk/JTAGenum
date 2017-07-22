@@ -41,7 +41,7 @@
 */
 
 //needed to put help strings into flash
-#include <avr/pgmspace.h>
+//#include <avr/pgmspace.h>
 
 /*
  * BEGIN USER DEFINITIONS
@@ -54,6 +54,13 @@
 #define CPU_PRESCALE(n) (CLKPR = 0x80, CLKPR = (n))
 
 // Setup the pins to be checked
+/*
+ * ESP32 LOLIN32 v1.0.0: usable digital pins are: 11-13 32-35 21-22 25-27 18-19 23 16-17 2-15 0
+ *	 (13 is connected to the LED)
+ */
+byte       pins[] = {  32 ,  33 ,  34 ,  35 ,  25 ,  26 ,  27 ,  18  };
+char * pinnames[] = { "32", "33", "34", "35", "25", "26", "27", "18" };
+
 /*
  * Teensy v3.1: usable digital pins are: A0-A7
  *	 (13 is connected to the LED)
@@ -69,9 +76,9 @@
  * Arduino Pro: usable digital pins are: 2-12, 14-19 (ANALOG 0-5)
  *	 (0,1 are the serial line, 13 is connected to the LED)
  */
-byte       pins[] = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
-char * pinnames[] = { "DIG_2", "DIG_3", "DIG_4", "DIG_5", "DIG_6",
-                      "DIG_7", "DIG_8", "DIG_9", "DIG_10", "DIG_11" };
+//byte       pins[] = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
+//char * pinnames[] = { "DIG_2", "DIG_3", "DIG_4", "DIG_5", "DIG_6",
+//                      "DIG_7", "DIG_8", "DIG_9", "DIG_10", "DIG_11" };
 
 // Once you have found the JTAG pins you can define
 // the following to allow for the boundary scan and
@@ -138,7 +145,7 @@ void setup(void)
 {
         // Uncomment for 3.3v boards. Cuts clock in half
         // only on avr based arduino & teensy hardware
-        //CPU_PRESCALE(0x01); 
+        CPU_PRESCALE(0x01); 
         Serial.begin(115200);
 }
 
