@@ -1,19 +1,43 @@
-This document can also be found at:
- http://deadhacker.com/2010/02/03/jtag-enumeration/
-authors and code branches:
- cyphunk  http://github.com/cyphunk/JTAGenum/
- jal2     http://github.com/jal2/JTAGenum/
- zoobab   http://hackerspace.be/JTAG_pinout_detector
- z1Y2x    https://github.com/z1Y2x/JTAGenum/
- adanhawthorn https://github.com/adanhawthorn/JTAGenum
- wardwouts https://github.com/wardwouts/JTAGenum
+About JTAGenum
+==============
+
+JTAGenum is an open source Arduino based hardware platform built with three
+primary goals:
+
+1. Given a large set of pins on a device determine which are JTAG lines
+2. Enumerate the Instruction Register to find undocumented functionality
+3. be easy to build and apply
+
+The development of a device has various distinct stages handled by different
+people/companies that each assume the other has properly secured their part.
+The security of devices often rely on obfuscation which makes it dificult for
+any part of the chain to evaluate the security of the whole. This is a problem
+that JTAGenum helps address. This was built for personal research and while
+working on various projects at Recurity Labs.
+
+Please feel free to contact me with any questions, problems, targets or
+updates. I would be more than happy to share credit.
+
+Links
+=====
+
+* JTAGenum blog post: http://deadhacker.com/2010/02/03/jtag-enumeration/
+* JTAGenum video tutorial "Ghetto Tools for Embedded Analysis - Nathan Fain -
+  REcon 2011": https://www.youtube.com/watch?v=ZmBfahwV3ss
+
+Authors and code branches
+=========================
+
+* cyphunk  http://github.com/cyphunk/JTAGenum/
+* jal2     http://github.com/jal2/JTAGenum/
+* zoobab   http://hackerspace.be/JTAG_pinout_detector
+* z1Y2x    https://github.com/z1Y2x/JTAGenum/
 
 For questions, help, changes, repository write access or
 interesting targets: cyphunk@gmail.com with gpg 0x490F3380
 
-
 Hardware
-........
+========
 
 To use JTAGenum you need an arduino compatible microcontroller.
 Arduino (http://arduino.cc/en/Main/Software) is a simple development
@@ -43,16 +67,16 @@ JTAGenum has a mode that helps check for this which I will get into
 more detail later.
 
 It's a good idea to insert resistors into the wires to protect the output
-drivers of both the Arduino and the investigated system. 400-800 Ohm should be fine.
-
+drivers of both the Arduino and the investigated system. 400-800 Ohm should be
+fine.
 
 Usage
-.....
+=====
 
-Download the JTAGenum code
-(http://github.com/cyphunk/sectk/tree/master/often/JTAG/JTAGenum)
-and open it in the Arduino IDE. The following needs to be changed
-in the code depending on your microcontroller:
+Load the file named "JTAGenum.ino" in the Arduino IDE.
+
+The following needs to be changed in the code depending on your
+microcontroller:
 
 pins[] define which pins on the microcontroller are being used to
 connect to the target pinname[] is a convent way to map the pins
@@ -157,31 +181,27 @@ the pin to a default state. If for some reason you continue to have
 sporadic issues run the following in sequence to check if the problem
 is the cable, target or other:
 
-	1. Disconnect the cables between your target and JTAGenum.
-	Disconnected them entirely from JTAGenum as well.
+1. Disconnect the cables between your target and JTAGenum. Disconnected them
+   entirely from JTAGenum as well.
 
-	2. Run a loopback check (l) with pull-ups off. In this state
-	the pins are in open mode and might fluctuate.  Youll notice
-	that as you move the microcontroller around, turn lights
-	on and off or move other devices close to or away from it
-	that the results change.
+2. Run a loopback check (l) with pull-ups off. In this state the pins are in
+   open mode and might fluctuate.  Youll notice that as you move the
+   microcontroller around, turn lights on and off or move other devices close
+   to or away from it that the results change.
 
-	3. Turn on pull-ups (r) and run the test again. The results
-	should now be consistent. If they arent, then let me know.
+3. Turn on pull-ups (r) and run the test again. The results should now be
+   consistent. If they arent, then let me know.
 
-	4. Now attach your cables to JTAGenum but not the target.
-	Run steps 2 and 3 again. Step 2 will give you a feel for
-	how much inconsistency the cable may add. If the loopback
-	check results in actual pattern matches then your cable has
-	cross-talk. Step 3 should still result in a consistent state
-	of either all high (1s) or all low (0s) and if it doesnt
-	then your cross-talk issues are such that all JTAGenum tests
-	are going to be buggy at best. Feel free to give me an email
-	and I will happily try to help solve the problem.
-
+4. Now attach your cables to JTAGenum but not the target. Run steps 2 and 3
+   again. Step 2 will give you a feel for how much inconsistency the cable may
+   add. If the loopback check results in actual pattern matches then your cable
+   has cross-talk. Step 3 should still result in a consistent state of either
+   all high (1s) or all low (0s) and if it doesnt then your cross-talk issues
+   are such that all JTAGenum tests are going to be buggy at best. Feel free to
+   give me an email and I will happily try to help solve the problem.
 
 A bit about JTAG
-................
+================
 
 Basic understanding of how JTAG works will be helpful when using
 JTAGenum. There are 4 lines/pins: TDO=output, TDI=input, TCK=clock,
@@ -200,3 +220,13 @@ reading (TDI) or writing (TDO), the clock line must be cycled once
 (TCK) for every bit or change. This was a brutal and drastic
 simplification but with that understood reading the Usage section
 should be comprehensible.
+
+TODO
+====
+
+1. upload pictures of the hardware setups
+2. add new 3.3v targets:
+	* esp8266
+	* esp32
+	* stm32 (bluepill, etc...)
+	* TI stellaris
