@@ -24,6 +24,7 @@ Links
 * JTAGenum blog post: http://deadhacker.com/2010/02/03/jtag-enumeration/
 * JTAGenum video tutorial "Ghetto Tools for Embedded Analysis - Nathan Fain -
   REcon 2011": https://www.youtube.com/watch?v=ZmBfahwV3ss
+* Embedded Analysis wiki: http://github.com/cyphunk/JTAGenum/wiki
 
 Authors and code branches
 =========================
@@ -49,13 +50,14 @@ $10 to $50. Ive tested JTAGenum on the official Arduino Duemilanove
 (http://www.pjrc.com/teensy/index.html). When picking your
 microcontroller platform consider two issues: 1. How many pins do
 you want to check on your target. 2. what voltage level does your
-target device require.  Concerning voltage most Arduinos work at 5
-volts. Some are switchable but even those that are not can be
-modified. For example revision 1.0 of the Teensy++ with over 30
-pins of i/o can be modified by hand to operate at 3.3 volts. I show
-where to cut lines and install a voltage regulator over here:
-http://www.flickr.com/photos/deadhacker/4152517331/. For voltages
-other than 3.3v and 5v there are a variety of solutions
+target device require.  
+
+Concerning voltage most Arduinos work at 5 volts. Some are switchable
+but even those that are not can be modified. For example revision 1.0
+of the Teensy++ with over 30 pins of i/o can be modified by hand to
+operate at 3.3 volts. I show where to cut lines and install a voltage
+regulator over here: http://www.flickr.com/photos/deadhacker/4152517331/.
+For voltages other than 3.3v and 5v there are a variety of solutions
 (http://chiphacker.com/questions/622/bi-directional-step-up-and-step-down-3-3v-5-etc)
 that depend on if you need uni-directional or bi-directional support
 on your i/o lines.
