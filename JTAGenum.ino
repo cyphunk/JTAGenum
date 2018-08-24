@@ -69,12 +69,17 @@
 //byte       pins[] = { PIN_B0, PIN_B1, PIN_B2, PIN_B4, PIN_B5 };
 //char * pinnames[] = { "TRST", " TDI", " TMS", " TCK", " TDO" };
 /*
+ * TI Launchpad Tiva C
+ */
+//byte       pins[] = {  PA_2,   PA_3,   PA_4,   PF_0,   PE_0,   PB_2 };
+//char * pinnames[] = { "PA_2", "PA_3", "PA_4", "PF_0", "PE_0", "PB_2" };
+/*
  * Arduino Pro: usable digital pins are: 2-12, 14-19 (ANALOG 0-5)
  *	 (0,1 are the serial line, 13 is connected to the LED)
  */
 byte       pins[] = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 char * pinnames[] = { "DIG_2", "DIG_3", "DIG_4", "DIG_5", "DIG_6",
-                     "DIG_7", "DIG_8", "DIG_9", "DIG_10", "DIG_11" };
+                      "DIG_7", "DIG_8", "DIG_9", "DIG_10", "DIG_11" };
 
 
 // Once you have found the JTAG pins you can define
