@@ -831,7 +831,7 @@ void loop()
       brute_ir(SCAN_LEN,   pins[TCK], pins[TMS], pins[TDI], pins[TDO], pins[TRST]);
     else if(strcmp(command, "verbose") == 0                          || strcmp(command, "v") == 0)
     {
-            if (VERBOSE == FALSE) {VERBOSE = TRUE;} else {VERBOSE = FALSE;}
+      if (VERBOSE == FALSE) {VERBOSE = TRUE;} else {VERBOSE = FALSE;}
       Serial.println(VERBOSE ? "Verbose ON" : "Verbose OFF");   
     } 
     else if(strcmp(command, "delay") == 0                            || strcmp(command, "d") == 0)
