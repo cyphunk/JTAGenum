@@ -139,7 +139,7 @@ static char pattern[PATTERN_LEN] = "0110011101001101101000010111001001";
 // Flags configured by UI:
 boolean VERBOSE                  = FALSE;
 boolean DELAY                    = FALSE;
-long    DELAYUS                  = 5000; // 5 Milliseconds
+long    DELAYUS                  = 50;
 boolean PULLUP                   = TRUE; 
 
 
@@ -165,7 +165,7 @@ void tap_state(char tap_state[], int tck, int tms)
 	Serial.print("tap_state: tms set to: ");
 #endif
 	while (*tap_state) { // exit when string \0 terminator encountered
-		if (DELAY) delayMicroseconds(50);
+		if (DELAY) delayMicroseconds(DELAYUS);
 		digitalWrite(tck, LOW);				   
 		digitalWrite(tms, *tap_state - '0'); // conv from ascii pattern
 #ifdef DEBUGTAP
@@ -188,7 +188,7 @@ static void pulse_tms(int tck, int tms, int s_tms)
 }
 static void pulse_tdi(int tck, int tdi, int s_tdi)
 {
-	if (DELAY) delayMicroseconds(50);
+	if (DELAY) delayMicroseconds(DELAYUS);
 	if (tck != IGNOREPIN) digitalWrite(tck, LOW);
 	digitalWrite(tdi, s_tdi); 
 	if (tck != IGNOREPIN) digitalWrite(tck, HIGH);
@@ -196,7 +196,7 @@ static void pulse_tdi(int tck, int tdi, int s_tdi)
 byte pulse_tdo(int tck, int tdo)
 {
 	byte tdo_read;
-	if (DELAY) delayMicroseconds(50);
+	if (DELAY) delayMicroseconds(DELAYUS);
 	digitalWrite(tck, LOW); // read in TDO on falling edge
 	tdo_read = digitalRead(tdo);
 	digitalWrite(tck, HIGH);
@@ -584,7 +584,7 @@ void ir_state(char state[], int tck, int tms, int tdi)
 	Serial.print("ir_state: pulse_tdi to: ");
 #endif
 	for (int i=0; i < IR_LEN; i++) {
-		if (DELAY) delayMicroseconds(50);
+		if (DELAY) delayMicroseconds(DELAYUS);
 		// TAP/TMS changes to Exit IR state (1) must be executed
 		// at same time that the last TDI bit is sent:
 		if (i == IR_LEN-1) {
@@ -843,13 +843,15 @@ void loop()
 		{
 			Serial.print("Delay microseconds: ");
 			if (DELAYUS != 0 && DELAYUS > 1000) DELAYUS-=1000;
-			else if (DELAYUS != 0 && DELAYUS <= 1000) DELAYUS-=100;
+      else if (DELAYUS != 0 && DELAYUS > 100) DELAYUS-=100;
+      else if (DELAYUS != 0) DELAYUS-=10;
 			Serial.println(DELAYUS,DEC);
 		}
 		else if(strcmp(command, "delay +") == 0                          || strcmp(command, "+") == 0)
 		{
 			Serial.print("Delay microseconds: ");
-			if (DELAYUS < 1000) DELAYUS+=100;
+      if (DELAYUS < 100) DELAYUS+=10;
+      else if (DELAYUS <= 1000) DELAYUS+=100;
 			else DELAYUS+=1000;
 			Serial.println(DELAYUS,DEC);
 		}
