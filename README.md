@@ -1,8 +1,8 @@
 About JTAGenum
 ==============
 
-JTAGenum is an open source Arduino based hardware platform built with three
-primary goals:
+JTAGenum is an open source Arduino (JTAGenum.ino) or RaspbberyPi (JTAGenum.sh) 
+based hardware platform built with three primary goals:
 
 1. Given a large set of pins on a device determine which are JTAG lines
 2. Enumerate the Instruction Register to find undocumented functionality
@@ -10,21 +10,22 @@ primary goals:
 
 The development of a device has various distinct stages handled by different
 people/companies that each assume the other has properly secured their part.
-The security of devices often rely on obfuscation which makes it dificult for
+The security of devices often rely on obfuscation which makes it difficult for
 any part of the chain to evaluate the security of the whole. This is a problem
 that JTAGenum helps address. This was built for personal research and while
 working on various projects at Recurity Labs.
 
 Please feel free to contact me with any questions, problems, targets or
-updates. I would be more than happy to share credit.
+updates. I would be more than happy if you fork and take the code in
+whatever direction you choose.
 
 Links
 =====
 
-* JTAGenum blog post: http://deadhacker.com/2010/02/03/jtag-enumeration/
-* JTAGenum video tutorial "Ghetto Tools for Embedded Analysis - Nathan Fain -
-  REcon 2011": https://www.youtube.com/watch?v=ZmBfahwV3ss
 * Embedded Analysis wiki: http://github.com/cyphunk/JTAGenum/wiki
+* JTAGenum blog post: http://deadhacker.com/2010/02/03/jtag-enumeration/
+* JTAGenum video tutorial "Ghetto Tools for Embedded Analysis REcon 2011":
+  https://www.youtube.com/watch?v=ZmBfahwV3ss
 
 Authors and code branches
 =========================
@@ -34,63 +35,50 @@ Authors and code branches
 * zoobab   http://hackerspace.be/JTAG_pinout_detector
 * z1Y2x    https://github.com/z1Y2x/JTAGenum/
 
-For questions, help, changes, repository write access or
-interesting targets: cyphunk@gmail.com with gpg 0x490F3380
-
 Hardware
 ========
 
-To use JTAGenum you need an arduino compatible microcontroller.
-Arduino (http://arduino.cc/en/Main/Software) is a simple development
-enviornment (IDE) for various microcontrollers. At the moment AVR
-and PIC variants are available and can be purchased anywhere from
-$10 to $50. Ive tested JTAGenum on the official Arduino Duemilanove
-(http://arduino.cc/en/Main/ArduinoBoardDuemilanove), RBBB clone
-(http://www.moderndevice.com/products/rbbb-kit) and Teensy++
-(http://www.pjrc.com/teensy/index.html). When picking your
-microcontroller platform consider two issues: 1. How many pins do
-you want to check on your target. 2. what voltage level does your
-target device require.  
+JTAGenum has been tested on RaspberryPi, standard Arduino, Arduino on 
+Teensy (http://www.pjrc.com/teensy/index.html), Arduino on 
+Texas Instruments Tiva C / Stellaris (https://github.com/cyphunk/JTAGenum/issues/4).
+When picking your micro-controller platform consider two issues: 
 
-Concerning voltage most Arduinos work at 5 volts. Some are switchable
-but even those that are not can be modified. For example revision 1.0
-of the Teensy++ with over 30 pins of i/o can be modified by hand to
-operate at 3.3 volts. I show where to cut lines and install a voltage
-regulator over here: http://www.flickr.com/photos/deadhacker/4152517331/.
-For voltages other than 3.3v and 5v there are a variety of solutions
-(http://chiphacker.com/questions/622/bi-directional-step-up-and-step-down-3-3v-5-etc)
-that depend on if you need uni-directional or bi-directional support
-on your i/o lines.
+1. How many pins do you want to check on your target. 
+2. what voltage level does your target device require.  
 
-When connecting the microcontroller to the pins of your target one
-thing to be aware of is possible cross-talk between wires. Ive been
-using a patch cable from Amontec that has a lot of cross talk.
-JTAGenum has a mode that helps check for this which I will get into
-more detail later.
+Concerning voltage RaspberryPi's I/O operate at 3.3v, many Arduinos 
+work at 5 volts. Some are switchable but even those that are not could 
+be modified. Alternatively voltage shifting Arduino shields or 
+voltage shifting gadgets can be used. See the Voltage Shifting Appendix 
+discussion on the Embedded Analysis wiki for more details.
+https://github.com/cyphunk/JTAGenum/wiki/Embedded-Analysis#Voltage_Shifting
 
-It's a good idea to insert resistors into the wires to protect the output
-drivers of both the Arduino and the investigated system. 400-800 Ohm should be
-fine.
+When connecting the micro-controller to the pins of your target one
+thing to be aware of is possible cross-talk between wires. The 
+loopback check function in JTAGenum cab help you determine which wires
+may produce cross talk. 
 
 Usage
 =====
 
-Load the file named "JTAGenum.ino" in the Arduino IDE.
+For use on **Raspberry Pi** use and consult the ``JTAGenum.sh``. The 
+Raspberry Pi pins being used for scanning should be specified inside the script
+file. This script is experimental and only provides the functions to finding JTAG. 
+To use the script should be *sourc'ed* on the console the user should execute
+the desired scan. See the comments in the header of the script for further details.
 
-The following needs to be changed in the code depending on your
-microcontroller:
+For use on a **Arduino** the ``JTAGenum.ino`` sketch is loaded. The Arduino pins 
+being used for scanning should first be specified at the top of the sketch. This
+is all that is required for basic JTAG scanning functionality. Once the 
+correct JTAG pins on the target have been determined they can be specified in 
+the script and along with the defining the proper IR_LENGTH the user can then
+execute the search for hidden instructions or print the boundary scan register.
 
-pins[] define which pins on the microcontroller are being used to
-connect to the target pinname[] is a convent way to map the pins
-to names which correspond to the names of pins on your target IR_LEN
-defines the length of the JTAG instruction register. If you change
-this you should also add 0s to each of the coresponding IR_**
-instruction definitions. You can find the IR_LEN in the documentation
-for your target. If you cannot find it just guess. (10 is the current
-value, 8 is also common) Upload the sketch to your microcontroller
-and open the serial console with a baud of 115200.  Sending a h to
-the console will print usage information that describes each function.
-Each function is enacted by sending the defined one character code:
+Before loading the sketch first define the pins[] and pinnames[] arrays. After
+loadin the sketch open a serial console at baud of 115200 to access the 
+user interface.  Sending a h to the console will print usage information that 
+describes each function. Each function is enacted by sending the defined one 
+character code:
 
 v > verbose
 
@@ -231,3 +219,4 @@ TODO
 	* esp8266
 	* esp32
 	* stm32 (bluepill, etc...)
+4. BusPirate bitbang support
