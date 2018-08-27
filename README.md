@@ -83,7 +83,7 @@ user interface.  Sending a h to the console will print usage information that
 describes each function. Each function is enacted by sending the defined one 
 character code:
 
-**``v`` > verbose**
+**v > verbose**
 
 Toggles verbose output. At times verbose might present too much
 information or without it too little.
