@@ -1,19 +1,22 @@
 About JTAGenum
 ==============
 
-JTAGenum is an open source Arduino (JTAGenum.ino) or RaspbberyPi (JTAGenum.sh) 
-based hardware platform built with three primary goals:
+JTAGenum is an open source Arduino ``JTAGenum.ino`` or RaspbberyPi 
+``JTAGenum.sh`` scanner. This code was built with three primary goals:
 
 1. Given a large set of pins on a device determine which are JTAG lines
 2. Enumerate the Instruction Register to find undocumented functionality
 3. be easy to build and apply
 
-The development of a device has various distinct stages handled by different
-people/companies that each assume the other has properly secured their part.
-The security of devices often rely on obfuscation which makes it difficult for
-any part of the chain to evaluate the security of the whole. This is a problem
-that JTAGenum helps address. This was built for personal research and while
-working on various projects at Recurity Labs.
+JTAGenum is is more Arduino'y fork of 
+[Arduinull](https://github.com/zoobab/arduinull) by Sébastien Bourdeauducq 
+(lekernel), which is inspired by Benedikt Heinz's 
+[JTAG scanner](https://elinux.org/JTAG_Finder).
+JTAGenum also includes instruction scanning functionality best described
+by Felix Domke (tmbinc) in his 
+[26c3 paper](http://events.ccc.de/congress/2009/Fahrplan/attachments/1435_JTAG.pdf).
+The initial version of this branch was built for personal research and while
+working on various projects at [Recurity Labs](https://recurity-labs.com/).
 
 Please feel free to contact me with any questions, problems, targets or
 updates. I would be more than happy if you fork and take the code in
