@@ -243,7 +243,7 @@ static int check_data(char pattern[], int iterations, int tck, int tdi, int tdo,
                       int *reg_len)
 {
   int i;
-        int w          = 0;
+  int w          = 0;
   int plen       = strlen(pattern);
   char tdo_read;
   char tdo_prev;
@@ -435,6 +435,7 @@ static void list_pin_names()
  * We record the first bit from the idcodes into bit0.
  * (oppposite to the old code).
  * If we get an IDCODE of all ones, we assume that the pins are wrong.
+ * This scan assumes IDCODE is the default DR between TDI and TDO.
  */
 static void scan_idcode()
 {
@@ -444,7 +445,8 @@ static void scan_idcode()
   int tdo_read;
   uint32_t idcodes[MAX_DEV_NR];
   printProgStr(PSTR("================================\r\n"
-                    "Starting scan for IDCODE...\r\n"));
+                    "Starting scan for IDCODE...\r\n"
+                    "(assumes IDCODE default DR)\r\n"));
   char idcodestr[] = "                ";
   int idcode_i = 31; // TODO: artifact that might need to be configurable
   uint32_t idcode;
@@ -805,6 +807,8 @@ void loop()
       scan();
     else if(strcmp(command, "pattern scan single") == 0              || strcmp(command, "1") == 0) 
     {
+      Serial.print("pins");
+      print_pins(TCK, TMS, TDO, TDI, TRST);
       init_pins(pins[TCK], pins[TMS], pins[TDI], pins[TRST] /*ntrst*/);
       tap_state(TAP_SHIFTIR, pins[TCK], pins[TMS]);
       if (check_data(pattern, (2*PATTERN_LEN), pins[TCK], pins[TDI], pins[TDO], &dummy))
