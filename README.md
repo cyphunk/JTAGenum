@@ -231,4 +231,3 @@ TODO
 	* esp8266
 	* esp32
 	* stm32 (bluepill, etc...)
-	* TI stellaris
