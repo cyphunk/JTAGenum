@@ -66,7 +66,7 @@ Usage
 
 For use on **Raspberry Pi** use and consult the ``JTAGenum.sh``. The 
 Raspberry Pi pins being used for scanning should be specified inside the script
-file. This script is experimental and only provides the functions to finding JTAG. 
+file. This script is experimental and only provides the functions for finding JTAG. 
 To use the script should be *sourc'ed* on the console the user should execute
 the desired scan. See the comments in the header of the script for further details.
 
@@ -83,12 +83,12 @@ user interface.  Sending a h to the console will print usage information that
 describes each function. Each function is enacted by sending the defined one 
 character code:
 
-``v`` > verbose
+**``v`` > verbose**
 
 Toggles verbose output. At times verbose might present too much
 information or without it too little.
 
-``l`` > loopback check
+**l > loopback check**
 
 Find loopback pairs that will generate false-positives for other
 tests. After running you should remove any loopback pairs from your
@@ -100,7 +100,7 @@ represent loopbacks. NOTE: you should probably run this once with
 and without internal pull-up resistors set (r) to avoid problems
 of cross-talk which is discussed in detail later.
 
-``s`` > scan
+**s > scan**
 
 This routine is used to check all possible pins and find JTAG  clock,
 state, input and output pins lines (TCK,TMS,TDI,TDO). This is done
@@ -117,7 +117,7 @@ Otherwise, only the TCK, TDI and TDO pins can be determined.  NOTE:
 run with pull-ups on (r) as any cross-talk might result in
 false-positives.
 
-``y`` > brute force IR search
+**y > brute force IR search**
 
 This will set the instruction register (IR) to all possible values
 and check the output. This can be used to find undocumented
@@ -127,7 +127,7 @@ and define pins[] as such: [0]=TCK [1]=TMS [2]=TDO [3]=TDI.  NOTE:
 run with pull-ups on (r) as any cross-talk might result in
 false-positives.
 
-``x`` > boundary scan
+**x > boundary scan**
 
 This will return the state of all the pins on the target.  Actually
 it is not just the pins but the contents of the scan/sample register.
@@ -138,7 +138,7 @@ this scan you should have already determined the 4 JTAG pins and
 define pins[] as such: [0]=TCK [1]=TMS [2]=TDO [3]=TDI.  NOTE: run
 with pull-ups on (r) as any cross-talk might result in false-positives.
 
-``i`` > idcode scan
+**i > idcode scan**
 
 The JTAG standards specify that if an idcode register is present
 it should be set as the default data register (DR) and attached to
@@ -152,7 +152,7 @@ output when it changes (we assume an idcode will not be all 0s or
 if the idcode matches. NOTE: run with pull-ups on (r) as any
 cross-talk might result in false-positives.
 
-``b`` > shift_bypass
+**b > shift_bypass**
 
 Broken atm (need to add TCK enumeration). The JTAG standards specify
 that if and idcode register is NOT present on the chip then the
@@ -163,7 +163,7 @@ remove loopbacks before running this test otherwise the loopback
 pins will look like valid JTAG lines. NOTE: run with pull-ups on
 (r) as any cross-talk might result in false-positives.
 
-``r`` > set pull-up resistors & cross-talk
+**r > set pull-up resistors & cross-talk**
 
 If like me the cables you use to connect between JTAGenum to your
 targets are flimsy or uninsulated you might run into issues of
