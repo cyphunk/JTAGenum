@@ -448,7 +448,6 @@ static void scan_idcode()
                     "Starting scan for IDCODE...\r\n"
                     "(assumes IDCODE default DR)\r\n"));
   char idcodestr[] = "                ";
-  int idcode_i = 31; // TODO: artifact that might need to be configurable
   uint32_t idcode;
   for(ntrst=0;ntrst<pinslen;ntrst++) {
     for(tck=0;tck<pinslen;tck++) {
