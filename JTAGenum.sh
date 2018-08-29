@@ -138,6 +138,7 @@ function check_data () {
   tdo_prev=255
   nr_toggle=0
   rcv=""
+  echo "" > /tmp/reg_len
   for (( i=0; i<$iterations; i++ )); do
     
     pulse_tdi $tck $tdi ${pattern:$w:1}
