@@ -1,18 +1,22 @@
 #!/usr/bin/env bash
 # JTAGenum for Raspberry Pi
 #
-# Stratigically there is no user interface.
+# Strategically there is no user interface.
 # You will probably want to understand and edit things. 
 # So, to use, source script and call functions:
 #
 #     source JTAGenum.sh
 #     loopback_check
 #     scan
-#     VERBOSE=1 scan_idcode
-# 
+#     scan_idcode
+#
 # To test witout raspberrypi:
 #
 #     DEBUG=1 scan
+#
+# Run with verbose output:
+#
+#    VERBOSE=1 scan
 
 #
 # USER DEFINITIONS
