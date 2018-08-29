@@ -23,6 +23,9 @@
 # 3v  2  3  4  g 17 27 22 3v 10  9 11  g  0  5  6 13 19 26  g
     pins=(2 3 4 17 27 22)
 pinnames=(pin1 pin2 pin3 pin4 pin5 pin6)
+pins=(27 2 4 17 22)
+pinnames=(rst tck tms tdo tdi)
+
 # pinnames are strings used when printing info to console
 
 #done
@@ -155,13 +158,15 @@ function check_data () {
     if [[ $i -ge ${#pattern} ]]; then
       if [[ "$rcv" = "$pattern" ]]; then
         reg_len=$(($i+1-${#pattern}))
+        # check_data called by parent with $()
+        # cant modify parents global var's so...
+        echo $reg_len > /tmp/reg_len
         echo 1
         return
       fi
     fi
   done
   
-  reg_len=0
   test $nr_toggle -gt 1 \
     && echo $nr_toggle \
     || echo 0
@@ -205,7 +210,7 @@ function scan () {
             if [[ $checkdatret -eq 1 ]]; then
               echo -n "FOUND! "
               print_pins $tck $tms $tdo $tdi $ntrst
-              echo " IR length: $reg_len"
+              echo " IR length: $(cat /tmp/reg_len 2>/dev/null)"
             elif [[ $checkdataret -gt 1 ]]; then
               echo -n "active "
               print_pins $tck $tms $tdo $tdi $ntrst
@@ -220,7 +225,7 @@ function scan () {
   done
   echo "================================"
 }
-reg_len=0
+
 function loopback_check () {
   echo "================================"
   echo "Starting loopback check..."
@@ -232,7 +237,7 @@ function loopback_check () {
       init_pins $IGNOREPIN $IGNOREPIN ${pins[$tdi]} $IGNOREPIN
       checkdatret=$(check_data $pattern $((2*${#pattern})) $IGNOREPIN ${pins[$tdi]} ${pins[$tdo]})
       if [[ $checkdatret -eq 1 ]]; then
-        echo "FOUND! tdo: ${pinnames[$tdo]} tdi:${pinnames[$tdi]} reglen:$reg_len"
+        echo "FOUND! tdo: ${pinnames[$tdo]} tdi:${pinnames[$tdi]} reglen:$(cat /tmp/reg_len 2>/dev/null)"
       elif [[ $checkdataret -gt 1 ]]; then
         echo "active tdo: ${pinnames[$tdo]} tdi:${pinnames[$tdi]} bits toggled:$checkdatret"
       elif [[ -n "$VERBOSE" ]]; then
