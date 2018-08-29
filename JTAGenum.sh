@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 # JTAGenum for Raspberry Pi
 #
 # Stratigically there is no user interface.
@@ -18,9 +18,11 @@
 # USER DEFINITIONS
 #
 
-# define pins (mapped directly to /sys/class/gpio/gpio${pin[N]})
-    pins=(1 2 3 4 5)
-pinnames=(pin1 pin2 pin3 pin4 pin5)
+# define BCM pins (mapped directly to /sys/class/gpio/gpio${pin[N]})
+# 5v 5v  g 14 15 18  g 23 24  g 25  8  7  1  g 12  g 16 20 21  
+# 3v  2  3  4  g 17 27 22 3v 10  9 11  g  0  5  6 13 19 26  g
+    pins=(2 3 4 17 27 22)
+pinnames=(pin1 pin2 pin3 pin4 pin5 pin6)
 # pinnames are strings used when printing info to console
 
 #done
@@ -56,17 +58,19 @@ function pinMode () {
 # wiringPi again
   local pin=$1 mode=$2 #assume passed either INPUT/OUTPUT define
   test "$DEBUG" && echo -en "\t[$pin$mode] ">&2 && return 0
-  echo "$pin"  > /sys/class/gpio/export                  
+  test -e /sys/class/gpio/gpio${pin} || \
+    echo "$pin"  > /sys/class/gpio/export
   echo "$mode" > /sys/class/gpio/gpio${pin}/direction
 }
 function digitalWrite () { 
   local pin=$1 val=$2 #assumes passed either HIGH/LOW define
   test "$DEBUG" && echo -n "$pin:$val ">&2 && return 0
-  echo "$val" > /sys/class/gpio/gpio${pin}/value
+  test $pin -ne $IGNOREPIN && \
+    echo "$val" > /sys/class/gpio/gpio${pin}/value
 }
 function digitalRead () {
   local pin=$1
-  test "$DEBUG" -eq 1 && echo -n "<$pin ">&2 && echo 1 && return
+  test "$DEBUG" && echo -n "<$pin ">&2 && echo 1 && return
   cat /sys/class/gpio/gpio${pin}/value
 }
 #
@@ -123,7 +127,7 @@ function init_pins () {
 # send pattern, check if we get it back on tdo
 # return 0 = no match, 1 = match, 
 #        2+ no pattern but line is active
-# on match sets global reglen to the lengt of the
+# on match sets global reg_len to the lengt of the
 # register between TDI and TDO 
 function check_data () {
   local pattern=$1 iterations=$2 tck=$3 tdi=$4 tdo=$5
@@ -201,11 +205,11 @@ function scan () {
             if [[ $checkdatret -eq 1 ]]; then
               echo -n "FOUND! "
               print_pins $tck $tms $tdo $tdi $ntrst
-              print -n " IR length: $reg_len"
+              echo " IR length: $reg_len"
             elif [[ $checkdataret -gt 1 ]]; then
               echo -n "active "
               print_pins $tck $tms $tdo $tdi $ntrst
-              print -n " bits toggled:$checkdatret"
+              echo " bits toggled:$checkdatret"
             elif [[ -n "$VERBOSE" ]]; then
               echo ""
             fi
@@ -216,7 +220,7 @@ function scan () {
   done
   echo "================================"
 }
-
+reg_len=0
 function loopback_check () {
   echo "================================"
   echo "Starting loopback check..."
@@ -228,9 +232,9 @@ function loopback_check () {
       init_pins $IGNOREPIN $IGNOREPIN ${pins[$tdi]} $IGNOREPIN
       checkdatret=$(check_data $pattern $((2*${#pattern})) $IGNOREPIN ${pins[$tdi]} ${pins[$tdo]})
       if [[ $checkdatret -eq 1 ]]; then
-        echo -n "FOUND! tdo: ${pinnames[$tdo]} tdi:${pinnames[$tdi]} reglen:$reg_len"
+        echo "FOUND! tdo: ${pinnames[$tdo]} tdi:${pinnames[$tdi]} reglen:$reg_len"
       elif [[ $checkdataret -gt 1 ]]; then
-        echo -n "active tdo: ${pinnames[$tdo]} tdi:${pinnames[$tdi]} bits toggled:$checkdatret"
+        echo "active tdo: ${pinnames[$tdo]} tdi:${pinnames[$tdi]} bits toggled:$checkdatret"
       elif [[ -n "$VERBOSE" ]]; then
         echo ""
       fi
@@ -242,7 +246,7 @@ function loopback_check () {
 function scan_idcode () {
   echo "================================"
   echo "Starting scan for IDCODE..."
-  echo "(assumes IDCODE default DR)\r\n"
+  echo "(assumes IDCODE default DR)"
 
          nr=0
    tdo_read=255
@@ -287,8 +291,8 @@ function scan_idcode () {
                 && printf " %8x\n" ${idcodes[$i]}
               # this probably just means we return on first idcode:
               # FIXME or test at least on chained target
-              if [[ $((${idcodes[$i]} & 1)) -eq 1 ]] \
-                 || [[ ${idcodes[$i]} = 0xffffffff ]]; then
+              if [[ $((${idcodes[$i]} & 1)) -ne 1 ]] \
+                 || [[ ${idcodes[$i]} = $((0xffffffff))  ]]; then
                 break 
               fi
             done
@@ -297,7 +301,7 @@ function scan_idcode () {
               print_pins $tck $tms $tdo $tdi $ntrst
               echo "  devices: $i" 
               for (( j=0; j<i; j++ )); do
-                printf "  0x%8x\n" ${idcodes[$j]}
+                printf "  0x%08x\n" ${idcodes[$j]}
               done
             fi
           done
@@ -308,7 +312,7 @@ function scan_idcode () {
   echo "================================"
 }
 
-set -e #exit on any error
+#set -e #exit on any error
 # loopback_check
 # scan
 # scan_idcode
