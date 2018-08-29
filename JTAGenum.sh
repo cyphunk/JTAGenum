@@ -10,13 +10,13 @@
 #     scan
 #     scan_idcode
 #
-# To test witout raspberrypi:
+# To test without raspberrypi:
 #
 #     DEBUG=1 scan
 #
 # Run with verbose output:
 #
-#    VERBOSE=1 scan
+#     VERBOSE=1 scan
 
 #
 # USER DEFINITIONS
