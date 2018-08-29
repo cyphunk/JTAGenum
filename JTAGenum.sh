@@ -27,10 +27,7 @@
 # 3v  2  3  4  g 17 27 22 3v 10  9 11  g  0  5  6 13 19 26  g
     pins=(2 3 4 17 27 22)
 pinnames=(pin1 pin2 pin3 pin4 pin5 pin6)
-
 # pinnames are strings used when printing info to console
-
-#done
 
 #
 # /USER DEFINITIONS
