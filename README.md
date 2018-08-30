@@ -222,7 +222,6 @@ TODO
 
 1. upload pictures of the hardware setups
 2. add new 3.3v targets:
-	* esp8266
 	* esp32
 	* stm32 (bluepill, etc...)
 4. BusPirate bitbang support

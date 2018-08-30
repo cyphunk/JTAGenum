@@ -66,13 +66,18 @@
 /*
  * Teensy v2
  */
-//byte       pins[] = { PIN_B0, PIN_B1, PIN_B2, PIN_B4, PIN_B5 };
-//char * pinnames[] = { "TRST", " TDI", " TMS", " TCK", " TDO" };
+// byte       pins[] = { PIN_B2, PIN_B3, PIN_B6, PIN_B4, PIN_B1 };
+// char * pinnames[] = { "B2", "B3", "B6", "B4", "B1" };
 /*
  * TI Launchpad Tiva C
  */
-//byte       pins[] = {  PA_2,   PA_3,   PA_4,   PF_0,   PE_0,   PB_2 };
-//char * pinnames[] = { "PA_2", "PA_3", "PA_4", "PF_0", "PE_0", "PB_2" };
+//byte       pins[] = {  PA_5,   PB_4,   PE_5,   PE_4,   PB_1  };
+//char * pinnames[] = { "PA_5", "PB_4", "PE_5", "PE_4", "PB_1" };
+/*
+ * ESP Wemos D1 Mini
+ */
+//byte       pins[] = {  D1 ,  D2 ,  D3 ,  D4 ,  D5 ,  D6 ,  D7 ,  D8 };
+//char * pinnames[] = { "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8" };
 /*
  * Arduino Pro: usable digital pins are: 2-12, 14-19 (ANALOG 0-5)
  *   (0,1 are the serial line, 13 is connected to the LED)
@@ -90,11 +95,11 @@ char * pinnames[] = { "DIG_2", "DIG_3", "DIG_4", "DIG_5", "DIG_6",
 // Define the values as the index for the pins[]
 // array of the found jtag pin.
 // ************************************************                     
-#define  TCK                      0
-#define  TMS                      1
-#define  TDO                      2
-#define  TDI                      3
-#define  TRST                     4
+#define  TCK                      3
+#define  TMS                      2
+#define  TDO                      4
+#define  TDI                      1
+#define  TRST                     0
 
 // Pattern used for scan() and loopback() tests
 #define PATTERN_LEN              64
@@ -209,6 +214,9 @@ byte pulse_tdo(int tck, int tdo)
  */
 void init_pins(int tck = IGNOREPIN, int tms = IGNOREPIN, int tdi = IGNOREPIN, int ntrst = IGNOREPIN) 
 { 
+#if defined(ESP8266) || defined(ESP_H)
+  ESP.wdtFeed();
+#endif
   // default all to INPUT state
   for (int i = 0; i < pinslen; i++) {
     pinMode(pins[i], INPUT);
