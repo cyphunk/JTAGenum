@@ -449,13 +449,11 @@ static void scan_idcode()
 {
   int tck, tms, tdo, tdi, ntrst;
   int i, j;
-  int nr; /* number of devices */
   int tdo_read;
   uint32_t idcodes[MAX_DEV_NR];
   printProgStr(PSTR("================================\r\n"
                     "Starting scan for IDCODE...\r\n"
                     "(assumes IDCODE default DR)\r\n"));
-  char idcodestr[] = "                ";
   uint32_t idcode;
   for(ntrst=0;ntrst<pinslen;ntrst++) {
     for(tck=0;tck<pinslen;tck++) {

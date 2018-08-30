@@ -211,7 +211,7 @@ function scan () {
               echo -n "FOUND! "
               print_pins $tck $tms $tdo $tdi $ntrst
               echo " IR length: $(cat /tmp/reg_len 2>/dev/null)"
-            elif [[ $checkdataret -gt 1 ]]; then
+            elif [[ $checkdatret -gt 1 ]]; then
               echo -n "active "
               print_pins $tck $tms $tdo $tdi $ntrst
               echo " bits toggled:$checkdatret"
@@ -238,7 +238,7 @@ function loopback_check () {
       checkdatret=$(check_data $pattern $((2*${#pattern})) $IGNOREPIN ${pins[$tdi]} ${pins[$tdo]})
       if [[ $checkdatret -eq 1 ]]; then
         echo "FOUND! tdo: ${pinnames[$tdo]} tdi:${pinnames[$tdi]} reglen:$(cat /tmp/reg_len 2>/dev/null)"
-      elif [[ $checkdataret -gt 1 ]]; then
+      elif [[ $checkdatret -gt 1 ]]; then
         echo "active tdo: ${pinnames[$tdo]} tdi:${pinnames[$tdi]} bits toggled:$checkdatret"
       elif [[ -n "$VERBOSE" ]]; then
         echo ""
@@ -253,10 +253,8 @@ function scan_idcode () {
   echo "Starting scan for IDCODE..."
   echo "(assumes IDCODE default DR)"
 
-         nr=0
    tdo_read=255
     idcodes=()
-  idcodestr="                "
    
   for (( ntrst=0; ntrst<${#pins[@]}; ntrst++ )); do
     for (( tck=0; tck<${#pins[@]}; tck++ )); do
@@ -281,13 +279,13 @@ function scan_idcode () {
             tap_state $TAP_RESET ${pins[$tck]} ${pins[$tms]}
             tap_state $TAP_SHIFTDR ${pins[$tck]} ${pins[$tms]}
             
-            for (( i=0; i<$MAX_DEV_NR; i++ )); do
+            for (( i=0; i<MAX_DEV_NR; i++ )); do
               idcodes[$i]=0
-              for (( j=0; j<$IDCODE_LEN; j++ )); do
+              for (( j=0; j<IDCODE_LEN; j++ )); do
                 pulse_tdi ${pins[$tck]} ${pins[$tdi]} 0
                 tdo_read=$(digitalRead ${pins[$tdo]})
                 test $tdo_read -ge 1 \
-                  && idcodes[$i]=$(( ${idcodes[$i]} | (1<<$j) ))
+                  && idcodes[$i]=$(( ${idcodes[$i]} | (1<<j) ))
                   
                 test -n "$VERBOSE" \
                   && echo -n "$tdo_read"
