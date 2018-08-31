@@ -43,51 +43,36 @@
 //needed to put help strings into flash
 #include <avr/pgmspace.h>
 
+//#define DEBUGTAP
+//#define DEBUGIR
 /*
  * BEGIN USER DEFINITIONS
  */
+//#define HALFCLOCK // uncomment for AVR (arduino/teensy) running at 3.3v
 
-#define TRUE  255
-#define FALSE 0
-
-//#define DEBUGTAP
-//#define DEBUGIR
-
-// For 3.3v AVR boards. Cuts clock in half. Also see cmd in setup()
-#define CPU_PRESCALE(n) (CLKPR = 0x80, CLKPR = (n))
-
-// Setup the pins to be checked
-/*
- * Teensy v3.1: usable digital pins are: A0-A7
- *   (13 is connected to the LED)
+/* 
+ * SETUP TARGET PINS
+ * determine your microcontroller platform mand set pins accordingly
+ * when in doubt comment out all but one pin[] pinnames[] definition
  */
-//byte       pins[] = {  A0 ,  A1 ,  A2 ,  A3 ,  A4 ,  A5 ,  A6 ,  A7  };
-//char * pinnames[] = { "A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7" };
-/*
- * Teensy v2
- */
-// byte       pins[] = { PIN_B2, PIN_B3, PIN_B6, PIN_B4, PIN_B1 };
-// char * pinnames[] = { "B2", "B3", "B6", "B4", "B1" };
-/*
- * TI Launchpad Tiva C
- */
-//byte       pins[] = {  PA_5,   PB_4,   PE_5,   PE_4,   PB_1  };
-//char * pinnames[] = { "PA_5", "PB_4", "PE_5", "PE_4", "PB_1" };
-/*
- * ESP Wemos D1 Mini
- * Note: if pins are not set correctly the ESP may trigger watchdog
-  *      when pinMode is called for false pin
- */
-//byte       pins[] = {  D1 ,  D2 ,  D3 ,  D4 ,  D5 ,  D6 ,  D7 ,  D8 };
-//char * pinnames[] = { "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8" };
-/*
- * Arduino Pro: usable digital pins are: 2-12, 14-19 (ANALOG 0-5)
- *   (0,1 are the serial line, 13 is connected to the LED)
- */
-byte       pins[] = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
-char * pinnames[] = { "DIG_2", "DIG_3", "DIG_4", "DIG_5", "DIG_6",
-                      "DIG_7", "DIG_8", "DIG_9", "DIG_10", "DIG_11" };
-
+#if   defined(KINETISK)     // Teensy v3 usable digital are: A0-A7. 13=LED
+  byte       pins[] = {  A0 ,  A1 ,  A2 ,  A3 ,  A4 ,  A5 ,  A6 ,  A7  };
+  char * pinnames[] = { "A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7" };
+#elif defined(CORE_TEENSY)  // Teensy v2
+  byte       pins[] = { PIN_B2 , PIN_B3 , PIN_B6 , PIN_B4 , PIN_B1  };
+  char * pinnames[] = {    "B2",    "B3",    "B6",    "B4",    "B1" };
+#elif defined(ENERGIA)     // TI Launchpad Tiva C
+  byte       pins[] = {  PA_5,   PB_4,   PE_5,   PE_4,   PB_1  };
+  char * pinnames[] = { "PA_5", "PB_4", "PE_5", "PE_4", "PB_1" };
+#elif defined(ESP_H)       // ESP8266 Wemos D1 Mini. if properly not set may trigger watchdog
+  byte       pins[] = {  D1 ,  D2 ,  D3 ,  D4 ,  D5 ,  D6 ,  D7 ,  D8  };
+  char * pinnames[] = { "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8" };
+#else                      // DEFAULT
+                           // Arduino Pro. usable digital 2-12,14-10. 13=LED 0,1=serial
+  byte       pins[] = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
+  char * pinnames[] = { "DIG_2", "DIG_3", "DIG_4", "DIG_5" , "DIG_6",
+                        "DIG_7", "DIG_8", "DIG_9", "DIG_10", "DIG_11" };
+#endif
 
 // Once you have found the JTAG pins you can define
 // the following to allow for the boundary scan and
@@ -144,6 +129,8 @@ static char pattern[PATTERN_LEN] = "0110011101001101101000010111001001";
 // Ignore TCK, TMS use in loopback check:
 #define IGNOREPIN                0xFFFF 
 // Flags configured by UI:
+#define TRUE                     255
+#define FALSE                    0
 boolean VERBOSE                  = FALSE;
 boolean DELAY                    = FALSE;
 long    DELAYUS                  = 50;
@@ -152,12 +139,16 @@ boolean PULLUP                   = TRUE;
 
 const byte pinslen               = sizeof(pins)/sizeof(pins[0]);   
 
+// For 3.3v AVR boards. Cuts clock in half. Also see cmd in setup()
+#define CPU_PRESCALE(n) (CLKPR = 0x80, CLKPR = (n))
 
 void setup(void)
 {
-        // Uncomment for 3.3v boards. Cuts clock in half
-        // only on avr based arduino & teensy hardware
-        //CPU_PRESCALE(0x01); 
+#ifdef HALFCLOCK
+        // for 3.3v boards. Cuts clock in half
+        // normally only on avr based arduino & teensy hardware
+        CPU_PRESCALE(0x01); 
+#endif
         Serial.begin(115200);
 }
 
