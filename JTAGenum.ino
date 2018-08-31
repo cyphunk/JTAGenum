@@ -8,36 +8,17 @@
  SETUP:
  Define the pins[] and pinnames[] map of pin names to pins 
  you want to scan with. If you are using a 3.3v board 
- uncomment the CPU_PRESCALE defintions at the top and in 
- the setup() function.
+ uncomment the HALFCLOCK define found in pin examples.
  
- If you plan to use IDCODE, Boundary or IR scan routines
- define the IR_IDCODE, IR_SAMPLE+SCAN_LEN and 
- IR_LEN+CHAIN_LEN values according to suspected or 
- documented values.
+ If after finding the JTAG pins of target you would like
+ to run the IReunum and BYPASS scans, then set the
+ TCK, TMS, TDO, TDI, TRST #define's
  
  Further documentation:
+ http://github.com/cyphunk/JTAGenum/
  http://deadhacker.com/2010/02/03/jtag-enumeration/ 
- 
- 
- AUTHORS & CODE BRANCHES:
- cyphunk  http://github.com/cyphunk/JTAGenum/
- jal2    http://github.com/jal2/JTAGenum/
- zoobab    http://new.hackerspace.be/JTAG_pinout_detector
- z1Y2x    https://github.com/z1Y2x/JTAGenum/
- 
- Most modifications are merged back into the first URL.
- Check the others for cutting edge or solutions if you 
- run into problems.   JTAGenum is based on Lekernel's 
- ArduiNull[1] which was itself inspired by Hunz's 
- JTAG Finder[2]. Tested on Arduino Mini Pro, Arduino 
- Mega, Arduino Duemilanove and Teensy++[3].
 
- [1]http://lekernel.net/blog/?p=319
- [2]http://www.c3a.de/wiki/index.php/JTAG_Finder
- [4]http://www.pjrc.com/teensy/   
-
- This code is public domain, use as you wish and at your own risk
+ This license for this code is whatever you want it to be
 */
 
 //needed to put help strings into flash
