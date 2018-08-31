@@ -75,6 +75,8 @@
 //char * pinnames[] = { "PA_5", "PB_4", "PE_5", "PE_4", "PB_1" };
 /*
  * ESP Wemos D1 Mini
+ * Note: if pins are not set correctly the ESP may trigger watchdog
+  *      when pinMode is called for false pin
  */
 //byte       pins[] = {  D1 ,  D2 ,  D3 ,  D4 ,  D5 ,  D6 ,  D7 ,  D8 };
 //char * pinnames[] = { "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8" };
@@ -399,7 +401,7 @@ static void loopback_check()
         Serial.print(pinnames[tdi]);
         Serial.print("    ");
       }
-      init_pins(IGNOREPIN/*tck*/, IGNOREPIN/*tck*/, pins[tdi], IGNOREPIN /*ntrst*/);
+      init_pins(IGNOREPIN/*tck*/, IGNOREPIN/*tms*/, pins[tdi], IGNOREPIN /*ntrst*/);
       checkdataret = check_data(pattern, (2*PATTERN_LEN), IGNOREPIN, pins[tdi], pins[tdo], &reg_len);
       if(checkdataret == 1) {
         Serial.print("FOUND! ");
