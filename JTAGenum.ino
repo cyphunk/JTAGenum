@@ -6,12 +6,10 @@
  baud and send 'h' to see usage information. 
  
  SETUP:
- Define the pins[] and pinnames[] map of pin names to pins 
- you want to scan with. If you are using a 3.3v board 
- uncomment the HALFCLOCK define found in pin examples.
+ Define the pins[] and pinnames[] for your microcontroller. 
  
  If after finding the JTAG pins of target you would like
- to run the IReunum and BYPASS scans, then set the
+ to run the IRenum and BYPASS scans, then set the
  TCK, TMS, TDO, TDI, TRST #define's
  
  Further documentation:
@@ -34,6 +32,8 @@
 /* 
  * SETUP TARGET PINS
  * determine your microcontroller platform mand set pins accordingly
+ * pins[] should be valid pins of your microcontroller
+ * pinnames[] can be any string you choose
  * when in doubt comment out all but one pin[] pinnames[] definition
  */
 #if   defined(KINETISK)     // Teensy v3 usable digital are: A0-A7. 13=LED
@@ -59,10 +59,8 @@
 // the following to allow for the boundary scan and
 // irenum functions to be run. 
 //
-// ************** VERY IMPORTANT! *****************
-// Define the values as the index for the pins[]
-// array of the found jtag pin.
-// ************************************************                     
+// The value is the index to the pin in pins[] array
+// eg. TCK=3 is used as pins[TCK] pins[3]
 #define  TCK                      3
 #define  TMS                      2
 #define  TDO                      4
