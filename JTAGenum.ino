@@ -45,7 +45,7 @@
 #elif defined(ENERGIA)     // TI Launchpad Tiva C
   byte       pins[] = {  PA_5,   PB_4,   PE_5,   PE_4,   PB_1  };
   char * pinnames[] = { "PA_5", "PB_4", "PE_5", "PE_4", "PB_1" };
-#elif defined(STM32)       // STM32 bluepill, pinout is here https://wiki.stm32duino.com/index.php?title=File:Bluepillpinout.gif
+#elif defined(STM32)       // STM32 bluepill, pinout is here: https://wiki.stm32duino.com/index.php?title=File:Bluepillpinout.gif. See also instructions to get it running with the Arduino IDE here: http://www.zoobab.com/bluepill-arduinoide
   byte       pins[] = {  10 ,  11 ,  12 ,  13 ,  14 ,  15 ,  16 ,  17, 18 , 19 , 21 , 22  };
   char * pinnames[] = { "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "21", "22" };
 #elif defined(ESP_H)       // ESP8266 Wemos D1 Mini. if properly not set may trigger watchdog
