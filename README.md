@@ -41,9 +41,14 @@ Authors and code branches
 Hardware
 ========
 
-JTAGenum has been tested on RaspberryPi, standard Arduino, Arduino on 
-Teensy (http://www.pjrc.com/teensy/index.html), Arduino on 
-Texas Instruments Tiva C / Stellaris (https://github.com/cyphunk/JTAGenum/issues/4).
+JTAGenum has been tested on the following hardware:
+
+* RaspberryPi (3.3V)
+* standard Arduino (5V)
+* Arduino on Teensy (3.3V) (http://www.pjrc.com/teensy/index.html)
+* Arduino on Texas Instruments Tiva C / Stellaris (3.3V) (https://github.com/cyphunk/JTAGenum/issues/4)
+* Arduino on STM32 Bluepill board (3.3V) (https://wiki.stm32duino.com/index.php?title=Blue_Pill and http://www.zoobab.com/bluepill-arduinoide)
+
 When picking your micro-controller platform consider two issues: 
 
 1. How many pins do you want to check on your target. 
