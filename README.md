@@ -228,3 +228,8 @@ TODO
 1. upload pictures of the hardware setups
 2. add ESP32 support
 4. BusPirate bitbang support
+
+Links
+=====
+
+* JTAGenum rewritten in GO: https://github.com/gremwell/go-jtagenum
