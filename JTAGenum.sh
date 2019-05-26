@@ -18,6 +18,11 @@
 #
 #     VERBOSE=1 scan
 
+# NOTE:
+# This code provides mixed results. Sometimes it works dead-on, others times
+# not. Until someone has a chance to thoroughly test you may consider this 
+# experimental.
+
 #
 # USER DEFINITIONS
 #

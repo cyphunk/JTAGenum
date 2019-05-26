@@ -2,7 +2,8 @@ About JTAGenum
 ==============
 
 JTAGenum is an open source Arduino ``JTAGenum.ino`` or RaspbberyPi 
-``JTAGenum.sh`` scanner. This code was built with three primary goals:
+``JTAGenum.sh`` (experimental) scanner. This code was built with three primary 
+goals:
 
 1. Given a large set of pins on a device determine which are JTAG lines
 2. Enumerate the Instruction Register to find undocumented functionality
@@ -38,12 +39,18 @@ Authors and code branches
 * zoobab   http://hackerspace.be/JTAG_pinout_detector
 * z1Y2x    https://github.com/z1Y2x/JTAGenum/
 
+Similar tools or branches:
+
+* gremwell's https://github.com/gremwell/go-jtagenum (RaspberryPi go rewrite + improvements)
+* joegrands's http://www.grandideastudio.com/jtagulator/ (purpose built hardware with improvements and added voltage range)
+* commercial products MiracleBox, JTAGfinder, EasyJtag (GUI based, some limitations) 
+
 Hardware
 ========
 
 JTAGenum has been tested on the following hardware:
 
-* RaspberryPi (3.3V)
+* RaspberryPi (3.3V) with mixed results
 * standard Arduino (5V)
 * Arduino on Teensy (3.3V) (http://www.pjrc.com/teensy/index.html)
 * Arduino on Texas Instruments Tiva C / Stellaris (3.3V) (https://github.com/cyphunk/JTAGenum/issues/4)
@@ -228,8 +235,3 @@ TODO
 1. upload pictures of the hardware setups
 2. add ESP32 support
 4. BusPirate bitbang support
-
-Links
-=====
-
-* JTAGenum rewritten in GO: https://github.com/gremwell/go-jtagenum
