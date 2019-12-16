@@ -37,6 +37,9 @@
  * pinnames[] can be any string you choose
  * when in doubt comment out all but one pin[] pinnames[] definition
  */
+#if   defined(TEENSY_40)     // Teensy v4 usable digital are: A0-A9; A0-A9 are always digital 14-23, for Arduino compatibility
+ byte       pins[] = {  A0 ,  A1 ,  A2 ,  A3 ,  A4 ,  A5 ,  A6 ,  A7, A8, A9  };
+ char * pinnames[] = { "A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9" };
 #if   defined(KINETISK)     // Teensy v3 usable digital are: A0-A7. 13=LED
  byte       pins[] = {  A0 ,  A1 ,  A2 ,  A3 ,  A4 ,  A5 ,  A6 ,  A7  };
  char * pinnames[] = { "A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7" };
