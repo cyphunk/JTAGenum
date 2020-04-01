@@ -39,26 +39,26 @@
  */
 #if   defined(TEENSY_40)    // Teensy v4 usable digital are: A0-A9; A0-A9 are always digital 14-23, for Arduino compatibility
  byte       pins[] = {  A0 ,  A1 ,  A2 ,  A3 ,  A4 ,  A5 ,  A6 ,  A7, A8, A9  };
- char * pinnames[] = { "A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9" };
+ String pinnames[] = { "A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9" };
 #elif   defined(KINETISK)   // Teensy v3 usable digital are: A0-A7. 13=LED
  byte       pins[] = {  A0 ,  A1 ,  A2 ,  A3 ,  A4 ,  A5 ,  A6 ,  A7  };
- char * pinnames[] = { "A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7" };
+ String pinnames[] = { "A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7" };
 #elif defined(CORE_TEENSY)  // Teensy v2
  byte       pins[] = { PIN_B2 , PIN_B3 , PIN_B6 , PIN_B4 , PIN_B1  };
- char * pinnames[] = {    "B2",    "B3",    "B6",    "B4",    "B1" };
+ String pinnames[] = {    "B2",    "B3",    "B6",    "B4",    "B1" };
 #elif defined(ENERGIA)     // TI Launchpad Tiva C
  byte       pins[] = {  PA_5,   PB_4,   PE_5,   PE_4,   PB_1  };
- char * pinnames[] = { "PA_5", "PB_4", "PE_5", "PE_4", "PB_1" };
+ String pinnames[] = { "PA_5", "PB_4", "PE_5", "PE_4", "PB_1" };
 #elif defined(STM32)       // STM32 bluepill, pinout is here: https://wiki.stm32duino.com/index.php?title=File:Bluepillpinout.gif. See also instructions to get it running with the Arduino IDE here: http://www.zoobab.com/bluepill-arduinoide
  byte       pins[] = {  10 ,  11 ,  12 ,  13 ,  14 ,  15 ,  16 ,  17, 18 , 19 , 21 , 22  };
- char * pinnames[] = { "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "21", "22" };
+ String pinnames[] = { "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "21", "22" };
 #elif defined(ESP_H)       // ESP8266 Wemos D1 Mini. if properly not set may trigger watchdog
  byte       pins[] = {  D1 ,  D2 ,  D3 ,  D4 ,  D5 ,  D6 ,  D7 ,  D8  };
- char * pinnames[] = { "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8" };
+ String pinnames[] = { "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8" };
 #else                      // DEFAULT
                            // Arduino Pro. usable digital 2-12,14-10. 13=LED 0,1=serial
  byte       pins[] = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
- char * pinnames[] = { "DIG_2", "DIG_3", "DIG_4", "DIG_5" , "DIG_6",
+ String pinnames[] = { "DIG_2", "DIG_3", "DIG_4", "DIG_5" , "DIG_6",
                        "DIG_7", "DIG_8", "DIG_9", "DIG_10", "DIG_11"};
   #include <EEPROM.h>
   #define EEPROMSTORE
@@ -71,7 +71,7 @@
 // The value is the index to the pin in pins[] array
 // eg. TCK=3 is used as pins[TCK] pins[3]
 #define PIN_NOT_SET 0xff
-char * jtagpinnames[] = { "TCK", "TMS", "TDO", "TDI", "TRST" };
+String jtagpinnames[] = { "TCK", "TMS", "TDO", "TDI", "TRST" };
 
 byte TCK  = PIN_NOT_SET;
 byte TMS  = PIN_NOT_SET;
@@ -190,20 +190,20 @@ void setup(void)
 /*
  * Set the JTAG TAP state machine
  */
-void tap_state(char tap_state[], int tck, int tms)
+void tap_state(String tap_state, int tck, int tms)
 {
 #ifdef DEBUGTAP
   Serial.print("tap_state: tms set to: ");
 #endif
-  while (*tap_state) { // exit when string \0 terminator encountered
+  int tap_state_length = tap_state.length();
+  for (int i=0; i<tap_state_length; i++) {
     if (DELAY) delayMicroseconds(DELAYUS);
     digitalWrite(tck, LOW);
-    digitalWrite(tms, *tap_state - '0'); // conv from ascii pattern
+    digitalWrite(tms, tap_state[i] - '0'); // conv from ascii pattern
 #ifdef DEBUGTAP
-    Serial.print(*tap_state - '0',DEC);
+    Serial.print(tap_state[i] - '0',DEC);
 #endif
     digitalWrite(tck, HIGH); // rising edge shifts in TMS
-    *tap_state++;
   }
 #ifdef DEBUGTAP
   Serial.println();
@@ -607,7 +607,7 @@ static void shift_bypass()
  * Shift in state[] as IR value.
  * Switch to ShiftDR state and end.
  */
-void ir_state(char state[], int tck, int tms, int tdi)
+void ir_state(String state, int tck, int tms, int tdi)
 {
 #ifdef DEBUGIR
   Serial.println("ir_state: set TAP to ShiftIR:");
@@ -626,12 +626,11 @@ void ir_state(char state[], int tck, int tms, int tdi)
       Serial.print(" (will be in ExitIR after next bit) ");
 #endif
     }
-    pulse_tdi(tck, tdi, *state-'0');
+    pulse_tdi(tck, tdi, state[i] - '0');
 #ifdef DEBUGIR
-    Serial.print(*state-'0', DEC);
+    Serial.print(state[i] - '0', DEC);
 #endif
     // TMS already set to 0 "shiftir" state to shift in bit to IR
-    *state++;
   }
 #ifdef DEBUGIR
   Serial.println("\r\nir_state: Change TAP from ExitIR to ShiftDR:");
