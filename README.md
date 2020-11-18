@@ -43,6 +43,8 @@ Similar tools or branches:
 
 * gremwell's https://github.com/gremwell/go-jtagenum (RaspberryPi go rewrite + improvements)
 * joegrands's http://www.grandideastudio.com/jtagulator/ (purpose built hardware with improvements and added voltage range)
+* szymonh's https://github.com/szymonh/SWDscan (arduino based SWD finder)
+* szymonh's https://github.com/szymonh/JTAGscan (arduino based with logic similar to jtagulator) 
 * dxa4481's https://github.com/dxa4481/inputProtectionShield (1.8-5v voltage shifting shield)
 * dipusone's https://github.com/dipusone/inputShieldProtection (fork of dxa4481's shield)
 * commercial products MiracleBox, JTAGfinder, EasyJtag (GUI based, some limitations) 
