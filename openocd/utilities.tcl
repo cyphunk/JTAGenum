@@ -5,6 +5,8 @@
 #     <address> until <address>+<length> to files of
 #     <block_size>.
 #
+# e.g.
+# dumploop 0 0x10000000 0x100000
 
 proc dumploop {address length block_size} {
    set limit [expr $address+$length ]
@@ -25,4 +27,28 @@ proc dumploop {address length block_size} {
     }
 	#sleep 1000
    }
+}
+
+# dumpscan <from> <until> <iterative> <block_size>
+#     scans from address <from> to <until> dumping <block_size> bytes
+#     does this iterating the address <iterative> until we reach <until>
+# e.g.
+# dumpscan 0 0xA0000000 0x10000000 0x1000
+proc dumpscan {from until iterative block_size} {
+    puts "dumpscan <$from> <$until> <$iterative> <$block_size>"
+    #set i $from
+    for {set i $from} {$i <= $until } {set i [expr $i+$iterative]} {
+        set filename [format "dumpscan_%08x.bin" $i ] 
+        set addr [format "0x%x" $i]
+        halt
+        puts "dump_image $filename $addr $block_size"
+    	if { [catch {dump_image $filename $addr $block_size} error] } {
+            puts "scan error $error"
+            sleep 2000
+        } else {
+            puts "scan all good"
+            resume
+            sleep 100
+        }
+    }
 }
