@@ -25,7 +25,10 @@
 #else
 #include <pgmspace.h>
 #endif
+
+#ifdef ESP32
 #include <esp_task_wdt.h>
+#endif
 
 // #define DEBUGTAP
 // #define DEBUGIR
@@ -57,15 +60,15 @@
 #elif defined(STM32)       // STM32 bluepill, pinout is here: https://wiki.stm32duino.com/index.php?title=File:Bluepillpinout.gif. See also instructions to get it running with the Arduino IDE here: http://www.zoobab.com/bluepill-arduinoide
  byte       pins[] = {  10 ,  11 ,  12 ,  13 ,  14 ,  15 ,  16 ,  17, 18 , 19 , 21 , 22  };
  String pinnames[] = { "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "21", "22" };
-#elif defined(STM32Nucleo)// STM32 Nucleo, pinout is here: https://os.mbed.com/platforms/ST-Nucleo-L152RE/.
+#elif defined(STM32Nucleo) // STM32 Nucleo, pinout is here: https://os.mbed.com/platforms/ST-Nucleo-L152RE/.
  byte       pins[] = {  D2 ,  D3 ,  D4 ,  D5 ,  D6  };
  String pinnames[] = { "D2", "D3", "D4", "D5", "D6" };
-#elif defined(ESP32) //nano esp32 - not sure if correct pinout
-byte pins[] = { D2 , D3 , D4 , D5 , D6 , D7 , D8 , D9 , D10 , D11 , D12 };
-String pinnames[] = { "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9"," D10", "D11", " D12" };
-#elif defined(ESP_H) // ESP8266 Wemos D1 Mini. if properly not set may trigger watchdog
-byte pins[] = { D1 , D2 , D3 , D4 , D5 , D6 , D7 , D8 };
-String pinnames[] = { "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8" };
+#elif defined(ESP32)       // nano esp32 - not sure if correct pinout
+ byte       pins[] = {  D2 ,  D3 ,  D4 ,  D5 ,  D6 ,  D7 ,  D8 ,  D9 ,  D10 ,  D11 ,  D12  };
+ String pinnames[] = { "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9"," D10", "D11", "D12" };
+#elif defined(ESP_H)       // ESP8266 Wemos D1 Mini. if properly not set may trigger watchdog
+ byte       pins[] = {  D1 ,  D2 ,  D3 ,  D4 ,  D5 ,  D6 ,  D7 ,  D8  };
+ String pinnames[] = { "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8" };
 #else                      // DEFAULT
                            // Arduino Pro. usable digital 2-12,14-10. 13=LED 0,1=serial
  byte       pins[] = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
@@ -136,7 +139,7 @@ static char pattern[PATTERN_LEN] = "0110011101001101101000010111001001";
 boolean VERBOSE                  = FALSE;
 boolean DELAY                    = FALSE;
 long    DELAYUS                  = 50;
-boolean JTAG_PULLUP                   = TRUE;
+boolean JTAG_PULLUP              = TRUE;
 
 
 const byte pinslen               = sizeof(pins)/sizeof(pins[0]);
@@ -252,9 +255,9 @@ byte pulse_tdo(int tck, int tdo)
 void init_pins(int tck = IGNOREPIN, int tms = IGNOREPIN, int tdi = IGNOREPIN, int ntrst = IGNOREPIN)
 {
 #if defined(ESP32)
- esp_task_wdt_reset(); //reset timer (feed watchdog)
+  esp_task_wdt_reset(); //reset timer (feed watchdog)
 #elif defined(ESP8266) || defined(ESP_H)
- ESP.wdtFeed(); //feed watchdog
+  ESP.wdtFeed(); //feed watchdog
 #endif
   // default all to INPUT state
   for (int i = 0; i < pinslen; i++) {
